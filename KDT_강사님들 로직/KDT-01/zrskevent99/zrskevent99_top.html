@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKEVENT99_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKEVENT99_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRSKEVENT99_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRSKEVENT99_TOP                          - Report ZRSKEVENT99</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zrskevent99.
+DATA gv_subrc TYPE sy-subrc.
+DATA gt_data TYPE TABLE OF sflight.
+DATA gs_data LIKE LINE OF gt_data.
+
+<font color ="#0000FF">*TABLES sflight.</font>
+<font color ="#0000FF">*TABLES mara.</font>
+<font color ="#0000FF">* Selection Screen 변수 = Global Variable</font>
+<font color ="#0000FF">*SELECT-OPTIONS so_mat FOR mara-matnr.</font>
+SELECT-OPTIONS so_car FOR gs_data-carrid NO INTERVALS NO-EXTENSION.
+SELECT-OPTIONS so_con FOR gs_data-connid.
+SELECT-OPTIONS so_dat FOR gs_data-fldate.
+PARAMETERS pa_car LIKE sflight-carrid.
+
+<font color ="#0000FF">*INCLUDE zrskevent99_s01.                            " Seleciton Screen</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKEVENT03F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKEVENT03F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRSKEVENT01F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZRSKEVENT01F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_alv_0100</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_alv_0100 .
+  PERFORM set_alv_0100.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form init_alv</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM init_alv .
+  CREATE OBJECT go_con
+    EXPORTING
+<font color ="#0000FF">*     parent                      =</font>
+      container_name              = 'CON'
+<font color ="#0000FF">*     style                       =</font>
+<font color ="#0000FF">*     lifetime                    = lifetime_default</font>
+<font color ="#0000FF">*     repid                       =</font>
+<font color ="#0000FF">*     dynnr                       =</font>
+<font color ="#0000FF">*     no_autodef_progid_dynnr     =</font>
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      lifetime_dynpro_dynpro_link = 5
+      OTHERS                      = 6.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a007(zmc00) WITH 'ALV Error'.
+  ENDIF.
+
+
+  CREATE OBJECT go_alv
+    EXPORTING
+<font color ="#0000FF">*     i_shellstyle      = 0</font>
+<font color ="#0000FF">*     i_lifetime        =</font>
+      i_parent          = go_con
+    EXCEPTIONS
+      error_cntl_create = 1
+      error_cntl_init   = 2
+      error_cntl_link   = 3
+      error_dp_create   = 4
+      OTHERS            = 5.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a007(zmc00) WITH 'ALV Error'.
+  ENDIF.
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_alv</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_alv .
+
+  CALL METHOD go_alv-&gt;set_table_for_first_display
+    EXPORTING
+<font color ="#0000FF">*     i_buffer_active               =</font>
+<font color ="#0000FF">*     i_bypassing_buffer            =</font>
+<font color ="#0000FF">*     i_consistency_check           =</font>
+      i_structure_name              = 'ZSSK1007'
+<font color ="#0000FF">*     is_variant                    =</font>
+<font color ="#0000FF">*     i_save                        =</font>
+<font color ="#0000FF">*     i_default                     = 'X'</font>
+      is_layout                     = gs_layo
+<font color ="#0000FF">*     is_print                      =</font>
+<font color ="#0000FF">*     it_special_groups             =</font>
+<font color ="#0000FF">*     it_toolbar_excluding          =</font>
+<font color ="#0000FF">*     it_hyperlink                  =</font>
+<font color ="#0000FF">*     it_alv_graphics               =</font>
+<font color ="#0000FF">*     it_except_qinfo               =</font>
+<font color ="#0000FF">*     ir_salv_adapter               =</font>
+    CHANGING
+      it_outtab                     = gt_data
+      it_fieldcatalog               = gt_fcat
+<font color ="#0000FF">*     it_sort                       =</font>
+<font color ="#0000FF">*     it_filter                     =</font>
+    EXCEPTIONS
+      invalid_parameter_combination = 1
+      program_error                 = 2
+      too_many_lines                = 3
+      OTHERS                        = 4.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a007(zmc00) WITH 'ALV Error'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_emp_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GV_SUBRC</font>
+<font color ="#0000FF">*&      &lt;-- GV_MESG</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_tree_data  CHANGING p_subrc
+                            p_mesg.
+  DATA: ls_data  LIKE LINE OF gt_data,
+        lv_begda TYPE sy-datum,
+        lv_endda LIKE lv_begda.
+
+  CONCATENATE pa_syear '0101' INTO lv_begda.
+  lv_endda = pa_syear && '1231'.
+  CLEAR gt_data[].
+  SELECT carrid connid fldate
+    INTO CORRESPONDING FIELDS OF TABLE gt_data
+    FROM sflight
+   WHERE fldate BETWEEN lv_begda AND lv_endda.
+  IF sy-subrc &lt;&gt; 0.
+    p_subrc = 4.
+    "Data is not found
+    MESSAGE i001(zmc00) INTO p_mesg.
+    RETURN.
+  ENDIF.
+
+  PERFORM display_data.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GT_EMP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_data  .
+  DATA: ls_data     LIKE LINE OF gt_data,
+        lv_carrname LIKE ls_data-carrname.
+  CLEAR ls_data.
+  SORT gt_data BY syear smonth carrid connid fldate.
+  LOOP AT gt_data INTO ls_data.
+    AT NEW carrid.
+      PERFORM get_airline_name USING ls_data-carrid
+                               CHANGING lv_carrname.
+    ENDAT.
+    ls_data-carrname = lv_carrname.
+
+    SELECT COUNT( * ) AS btotal
+      FROM sbook
+      INTO ls_data-btotal
+     WHERE carrid = ls_data-carrid
+       AND connid = ls_data-connid
+       AND fldate = ls_data-fldate
+       AND cancelled &lt;&gt; 'X'.
+
+    ls_data-syear = ls_data-fldate+0(4).
+    ls_data-smonth = ls_data-fldate+4(2).
+    MODIFY gt_data FROM ls_data.
+    CLEAR ls_data.
+  ENDLOOP.
+
+  SORT gt_data BY syear smonth carrid connid fldate.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GS_LAYO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout  CHANGING ps_layo TYPE lvc_s_layo.
+  CLEAR ps_layo.
+  ps_layo-sel_mode = 'A'.
+  ps_layo-cwidth_opt = 'X'.
+  ps_layo-zebra = 'X'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GT_FCAT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat  USING VALUE(p_mode)
+            CHANGING pt_fcat TYPE lvc_t_fcat.
+
+  DATA ls_fcat TYPE lvc_s_fcat.
+
+  CLEAR: pt_fcat.
+  CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
+    EXPORTING
+      i_structure_name = 'ZSSK1007'
+    CHANGING
+      ct_fieldcat      = pt_fcat.
+
+  LOOP AT pt_fcat INTO ls_fcat.
+    CASE p_mode.
+      WHEN 'T'.
+        CASE ls_fcat-fieldname.
+          WHEN 'BTOTAL'.
+
+          WHEN 'CARRID'.
+            ls_fcat-outputlen = '10'.
+          WHEN 'CARRNAME'.
+
+          WHEN OTHERS.
+            ls_fcat-no_out = 'X'.
+
+        ENDCASE.
+    ENDCASE.
+    MODIFY pt_fcat FROM ls_fcat.
+
+    CLEAR ls_fcat.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form init_alv_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM init_alv_tree .
+  CREATE OBJECT go_con_tree
+    EXPORTING
+<font color ="#0000FF">*     parent                      =</font>
+      container_name              = 'CON_TREE'
+<font color ="#0000FF">*     style                       =</font>
+<font color ="#0000FF">*     lifetime                    = lifetime_default</font>
+<font color ="#0000FF">*     repid                       =</font>
+<font color ="#0000FF">*     dynnr                       =</font>
+<font color ="#0000FF">*     no_autodef_progid_dynnr     =</font>
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      lifetime_dynpro_dynpro_link = 5
+      OTHERS                      = 6.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a007(zmc00) WITH 'ALV Tree Error'.
+  ENDIF.
+
+  CREATE OBJECT go_alv_tree
+    EXPORTING
+<font color ="#0000FF">*     lifetime                    =</font>
+      parent                      = go_con_tree
+<font color ="#0000FF">*     shellstyle                  =</font>
+      node_selection_mode         = cl_gui_column_tree=&gt;node_sel_mode_single
+<font color ="#0000FF">*     hide_selection              =</font>
+      item_selection              = 'X'
+      no_toolbar                  = ''
+      no_html_header              = 'X'
+<font color ="#0000FF">*     i_print                     =</font>
+<font color ="#0000FF">*     i_fcat_complete             =</font>
+<font color ="#0000FF">*     i_model_mode                =</font>
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      illegal_node_selection_mode = 5
+      failed                      = 6
+      illegal_column_name         = 7
+      OTHERS                      = 8.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a007(zmc00) WITH 'ALV Tree Error'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_hierarchy_header</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_hierarchy_header CHANGING ps_tree_h TYPE treev_hhdr.
+  CLEAR ps_tree_h.
+  ps_tree_h-heading = 'Tree'.
+  ps_tree_h-tooltip = 'Tree Tooltip'.
+  ps_tree_h-width = 35.
+  ps_tree_h-width_pix = ''.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_alv_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_alv_tree .
+  PERFORM set_hierarchy_header CHANGING gs_tree_h.
+
+  CLEAR gt_tree.
+  CALL METHOD go_alv_tree-&gt;set_table_for_first_display
+    EXPORTING
+<font color ="#0000FF">*     i_structure_name    =</font>
+<font color ="#0000FF">*     is_variant          =</font>
+<font color ="#0000FF">*     i_save              =</font>
+<font color ="#0000FF">*     i_default           = 'X'</font>
+      is_hierarchy_header = gs_tree_h
+<font color ="#0000FF">*     is_exception_field  =</font>
+<font color ="#0000FF">*     it_special_groups   =</font>
+<font color ="#0000FF">*     it_list_commentary  =</font>
+<font color ="#0000FF">*     i_logo              =</font>
+<font color ="#0000FF">*     i_background_id     =</font>
+<font color ="#0000FF">*     it_toolbar_excluding =</font>
+<font color ="#0000FF">*     it_except_qinfo     =</font>
+    CHANGING
+      it_outtab           = gt_tree "Empty
+<font color ="#0000FF">*     it_filter           =</font>
+      it_fieldcatalog     = gt_fcat.
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a007(zmc00) WITH 'ALV Error'.
+  ENDIF.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_airline_name</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_TREE_TEMP_CARRID</font>
+<font color ="#0000FF">*&      &lt;-- LV_AIRLINE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_airline_name  USING    VALUE(p_carrid)
+                       CHANGING p_name.
+  CLEAR p_name.
+  SELECT SINGLE carrname
+    FROM scarr
+    INTO p_name
+   WHERE carrid = p_carrid.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_hierarchy</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_hierarchy .
+  DATA: ls_data LIKE LINE OF gt_data,
+        ls_temp LIKE ls_data.
+
+  DATA: lv_top_nkey    TYPE lvc_nkey,   "Year
+        lv_month_nkey  TYPE lvc_nkey,   "Month
+        lv_carrid_nkey TYPE lvc_nkey.   "Airline
+
+  SORT gt_data BY syear smonth carrid connid fldate.
+
+  LOOP AT gt_data INTO ls_data.
+    CLEAR ls_temp.
+    MOVE-CORRESPONDING ls_data TO ls_temp.
+    " Top Node( Year )
+    AT NEW syear.
+      SUM.
+      PERFORM add_top_node USING ls_temp
+                                 ls_data-btotal
+                           CHANGING lv_top_nkey.
+
+
+    ENDAT.
+<font color ="#0000FF">*    EXIT.</font>
+    " Child Node 1 ( Month )
+    AT NEW smonth.
+      SUM.
+      PERFORM add_child_node1 USING ls_temp
+                                    ls_data-btotal
+                                    lv_top_nkey
+                              CHANGING lv_month_nkey.
+
+
+    ENDAT.
+    " Child Node 2 ( Airline )
+    AT NEW carrid.
+      SUM.
+      PERFORM add_child_node2 USING ls_temp
+                                    ls_data-btotal
+                                    lv_month_nkey
+                              CHANGING lv_carrid_nkey.
+    ENDAT.
+  ENDLOOP.
+
+  "Expanded
+<font color ="#0000FF">*  CALL METHOD go_alv_tree-&gt;expand_node</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      i_node_key = lv_top_nkey.</font>
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form add_top_node</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_TEMP</font>
+<font color ="#0000FF">*&      &lt;-- LS_TOP_NOE_KEY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_top_node  USING    VALUE(ps_data) LIKE gs_data
+                            VALUE(p_btotal)
+                   CHANGING p_top_nkey TYPE lvc_nkey.
+  DATA: lv_relat_nkey  TYPE lvc_nkey,
+        lv_top_ntext   TYPE lvc_value,
+        ls_data        LIKE ps_data,
+        ls_node_layout TYPE lvc_s_layn.
+
+  lv_top_ntext = ps_data-syear.
+  ls_data-syear = ps_data-syear.
+  ls_data-btotal = p_btotal.
+
+  ls_node_layout-isfolder = 'X'.
+
+  CALL METHOD go_alv_tree-&gt;add_node
+    EXPORTING
+      i_relat_node_key = lv_relat_nkey "Emply ( Top Node )
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = lv_top_ntext
+      is_node_layout   = ls_node_layout
+      is_outtab_line   = ls_data
+    IMPORTING
+      e_new_node_key   = p_top_nkey.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form add_child_node1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_TEMP</font>
+<font color ="#0000FF">*&      --&gt; LV_TOP_NKEY</font>
+<font color ="#0000FF">*&      &lt;-- LV_MONTH_NKEY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_child_node1  USING    VALUE(ps_data) LIKE gs_data
+                               VALUE(p_btotal)
+                               VALUE(p_relat_nkey) TYPE lvc_nkey
+                      CHANGING p_month_nkey TYPE lvc_nkey.
+  DATA: lv_child_ntext TYPE lvc_value,
+        ls_data        LIKE ps_data,
+        ls_node_layout TYPE lvc_s_layn.
+
+  lv_child_ntext = ps_data-smonth.
+  ls_data-syear = ps_data-syear.
+  ls_data-smonth = ps_data-smonth.
+  ls_data-btotal = p_btotal.
+
+  ls_node_layout-isfolder = 'X'.
+  CALL METHOD go_alv_tree-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_nkey
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = lv_child_ntext
+      is_node_layout   = ls_node_layout
+      is_outtab_line   = ls_data
+    IMPORTING
+      e_new_node_key   = p_month_nkey.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form add_child_node2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_TEMP</font>
+<font color ="#0000FF">*&      --&gt; LS_DATA_BTOTAL</font>
+<font color ="#0000FF">*&      --&gt; LV_MONTH_NKEY</font>
+<font color ="#0000FF">*&      &lt;-- LV_CARRID_NKEY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_child_node2  USING    VALUE(ps_data) LIKE gs_data
+                               VALUE(p_btotal)
+                               VALUE(p_relat_nkey) TYPE lvc_nkey
+                      CHANGING p_carrid_nkey TYPE lvc_nkey.
+  DATA: lv_child_ntext TYPE lvc_value,
+        ls_data        LIKE ps_data,
+        ls_node_layout TYPE lvc_s_layn.
+
+  lv_child_ntext = ps_data-carrid &&
+                   '(' && ps_data-carrname && ')'.
+
+  ls_data-syear = ps_data-syear.
+  ls_data-smonth = ps_data-smonth.
+  ls_data-carrid = ps_data-carrid.
+  ls_data-carrname = ps_data-carrname.
+  ls_data-btotal = p_btotal.
+
+  ls_node_layout-n_image = icon_checked.
+  CALL METHOD go_alv_tree-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_nkey
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = lv_child_ntext
+      is_node_layout   = ls_node_layout
+      is_outtab_line   = ls_data
+    IMPORTING
+      e_new_node_key   = p_carrid_nkey.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

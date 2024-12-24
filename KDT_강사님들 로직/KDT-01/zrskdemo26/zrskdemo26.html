@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKDEMO26</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKDEMO26</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Field Symbols</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKDEMO26</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zrskdemo26.
+
+<font color ="#0000FF">*DATA: gt_scarr TYPE TABLE OF scarr.</font>
+<font color ="#0000FF">* Open SQL:</font>
+<font color ="#0000FF">*INCO CORRESPONDING FIELDS OF,</font>
+<font color ="#0000FF">*FOR ENTRYIESS IN</font>
+SELECT carrid, carrname
+  FROM scarr
+  INTO TABLE @DATA(gt_scarr).
+
+cl_demo_output=&gt;display_data( gt_scarr ).
+<font color ="#0000FF">*DATA gs_scarr LIKE LINE OF gt_scarr.</font>
+READ TABLE gt_scarr INDEX 1 INTO DATA(gs_scarr).
+RETURN.
+
+
+
+
+
+
+
+
+DATA: gv_carrid   TYPE scarr-carrid,
+      gv_car      LIKE gv_carrid,
+      gv_car01    LIKE gv_car,
+      gv_field(8).
+
+FIELD-SYMBOLS &lt;f_car&gt; . "TYPE scarr-carrid.
+
+ASSIGN gv_carrid TO &lt;f_car&gt;.
+&lt;f_car&gt; = 'AA'.
+
+ASSIGN gv_car TO &lt;f_car&gt;.
+&lt;f_car&gt; = 'UA'.
+
+<font color ="#0000FF">*UNASSIGN &lt;f_car&gt;.</font>
+
+<font color ="#0000FF">*CLEAR &lt;f_car&gt;.</font>
+
+gv_field = 'GV_CAR02'. "'GV_CAR01'.
+<font color ="#0000FF">*ASSIGN gv_field TO &lt;f_car&gt;.</font>
+ASSIGN (gv_field) TO &lt;f_car&gt;.
+gv_car01 = 'AB'.
+WRITE &lt;f_car&gt;.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

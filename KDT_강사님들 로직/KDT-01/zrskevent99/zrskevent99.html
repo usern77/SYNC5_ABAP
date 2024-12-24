@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKEVENT99</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKEVENT99</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Event - Demo</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKEVENT99</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zrskevent99_top.html">zrskevent99_top</a>.    " Global Data
+
+include <a href ="zrskevent99_o01.html">zrskevent99_o01</a>.  " PBO-Modules
+include <a href ="zrskevent99_i01.html">zrskevent99_i01</a>.  " PAI-Modules
+include <a href ="zrskevent99_f01.html">zrskevent99_f01</a>.  " FORM-Routines
+
+<font color ="#0000FF">*LOAD-OF-PROGRAM.</font>
+
+INITIALIZATION. " Type 1만 사용 가능
+  so_car-sign = 'I'.
+  so_car-option = 'EQ'.
+  so_car-low = 'AA'.
+  APPEND so_car." TO so_car[].
+
+AT SELECTION-SCREEN OUTPUT. "PBO
+
+AT SELECTION-SCREEN. "PAI
+  MESSAGE i016(pn) WITH 'ASS'.
+
+  IF so_car IS INITIAL.
+
+  ENDIF.
+
+  IF so_con[] IS INITIAL.
+
+  ENDIF.
+
+START-OF-SELECTION.
+
+  SELECT *
+    FROM sflight
+    INTO CORRESPONDING FIELDS OF TABLE gt_data
+    WHERE carrid IN so_car[]
+      AND connid IN so_con
+  AND fldate IN so_dat.
+<font color ="#0000FF">*   WHERE carrid = pa_car.</font>
+
+  cl_demo_output=&gt;display_data( gt_data ).
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CAR D       .</font>
+<font color ="#0000FF">* SO_CAR D       .</font>
+<font color ="#0000FF">* SO_CON D       .</font>
+<font color ="#0000FF">* SO_DAT D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: PN</font>
+<font color ="#0000FF">*016   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

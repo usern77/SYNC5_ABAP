@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKDEMO21</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKDEMO21</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Sum</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKDEMO21</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zrskdemo21.
+
+DATA: BEGIN OF gs_list.
+        INCLUDE STRUCTURE sflight.
+DATA:   price_sum1 TYPE sflight-price, "Sum
+        price_sum2 TYPE sflight-price, "Sum dis 5%
+      END OF gs_list,
+      gt_list LIKE TABLE OF gs_list.
+
+START-OF-SELECTION.
+
+  "New Opensql
+  DATA: lv_int TYPE p DECIMALS 2.
+  lv_int = '0.5'.
+  SELECT carrid, SUM( price * @lv_int ) AS price_sum1
+    FROM sflight
+    INTO CORRESPONDING FIELDS OF TABLE @gt_list
+   GROUP BY carrid.
+
+
+  cl_demo_output=&gt;display_data( gt_list ).
+<font color ="#0000FF">*  LOOP AT gt_list INTO gs_list.</font>
+<font color ="#0000FF">*    gs_list-price_sum2 = gs_list-price_sum1 * '0.5'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDLOOP.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

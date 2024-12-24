@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKDEMO24</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKDEMO24</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Lock</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKDEMO23</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zrskdemo24.
+CALL FUNCTION 'ENQUEUE_EY_SPFLI'
+  EXPORTING
+    mode_spfli     = 'E'
+<font color ="#0000FF">*   MANDT          = SY-MANDT</font>
+    carrid         = 'AA'
+    connid         = '0017'
+<font color ="#0000FF">*   X_CARRID       = ''</font>
+<font color ="#0000FF">*   X_CONNID       = ''</font>
+<font color ="#0000FF">*   _SCOPE         = '2'</font>
+<font color ="#0000FF">*   _WAIT          = ' '</font>
+<font color ="#0000FF">*   _COLLECT       = ' '</font>
+  EXCEPTIONS
+    foreign_lock   = 1
+    system_failure = 2
+    OTHERS         = 3.
+
+CALL SCREEN 100.
+<font color ="#0000FF">*WRITE sy-subrc.</font>
+<font color ="#0000FF">*NEW-LINE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*WRITE '24Program_B'.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

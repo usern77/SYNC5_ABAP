@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKDEMO20</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKDEMO20</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Number Range</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKDEMO17</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zrskdemo20.
+
+DATA gv_number TYPE n LENGTH 10.
+
+CALL FUNCTION 'NUMBER_GET_NEXT'
+  EXPORTING
+    nr_range_nr             = 'SA'
+    object                  = 'ZASS_VONO'
+<font color ="#0000FF">*   QUANTITY                = '1'</font>
+<font color ="#0000FF">*   SUBOBJECT               = ' '</font>
+    toyear                  = '2024'
+<font color ="#0000FF">*   IGNORE_BUFFER           = ' '</font>
+  IMPORTING
+    number                  = gv_number
+<font color ="#0000FF">*   QUANTITY                =</font>
+<font color ="#0000FF">*   RETURNCODE              =</font>
+  EXCEPTIONS
+    interval_not_found      = 1
+    number_range_not_intern = 2
+    object_not_found        = 3
+    quantity_is_0           = 4
+    quantity_is_not_1       = 5
+    interval_overflow       = 6
+    buffer_overflow         = 7
+    OTHERS                  = 8.
+IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+ENDIF.
+
+WRITE: 'Number Range:', gv_number.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

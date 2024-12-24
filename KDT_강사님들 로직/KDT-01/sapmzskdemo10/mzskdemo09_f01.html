@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZSKDEMO09_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZSKDEMO09_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZSKDEMO09_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZSKDEMO09_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_text .
+  DATA lv_dat TYPE c LENGTH 10.
+  CLEAR: gv_text1, gv_text2.
+  "1
+  WRITE sy-datum TO lv_dat.
+  CONCATENATE lv_dat TEXT-t01 INTO gv_text1.
+  MESSAGE i016(pn) WITH 'Text' sy-datum INTO gv_text2.
+
+  "2
+<font color ="#0000FF">*      CONCATENATE sy-datum 'Text' INTO gv_text1</font>
+<font color ="#0000FF">*      SEPARATED BY space.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      gv_text2 = sy-datum && |Text2|.</font>
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_button_text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_button_text .
+  DATA : ls_dynp_header  TYPE d020s,
+         lt_tdynp_fields TYPE TABLE OF d021s,
+         lt_tdynp_logic  TYPE TABLE OF d022s,
+         lt_tdynp_matchc TYPE TABLE OF d023s,
+         ls_dynp_fields  TYPE d021s,
+         ls_dynp_logic   TYPE d022s,
+         ls_dynp_matchc  TYPE d023s.
+  DATA: BEGIN OF ls_dynproname,
+          prog LIKE d020s-prog,
+          dnum LIKE d020s-dnum,
+        END OF ls_dynproname.
+  ls_dynproname-prog = sy-repid.
+  ls_dynproname-dnum = '0100'.
+  DATA: lt_msg TYPE TABLE OF trmsg WITH HEADER LINE.
+
+  IMPORT DYNPRO ls_dynp_header lt_tdynp_fields
+                    lt_tdynp_logic  lt_tdynp_matchc ID ls_dynproname.
+  LOOP AT lt_tdynp_fields INTO ls_dynp_fields.
+    CASE ls_dynp_fields-fnam.
+      WHEN 'B_POPUP'.
+        ls_dynp_fields-stxt = TEXT-b01.
+        ls_dynp_fields-leng = 20.
+      WHEN 'TAB1'.
+        ls_dynp_fields-stxt = TEXT-b02.
+        ls_dynp_fields-leng = 20.
+      WHEN 'TAB2'.
+        ls_dynp_fields-stxt = TEXT-b03.
+        ls_dynp_fields-leng = 20.
+    ENDCASE.
+    MODIFY  lt_tdynp_fields FROM ls_dynp_fields.
+  ENDLOOP.
+
+  EXPORT DYNPRO ls_dynp_header lt_tdynp_fields
+                lt_tdynp_logic  lt_tdynp_matchc ID ls_dynproname.
+
+  GENERATE DYNPRO ls_dynp_header lt_tdynp_fields
+                  lt_tdynp_logic lt_tdynp_matchc
+                  ID ls_dynproname MESSAGE lt_msg LINE lt_msg WORD lt_msg.
+
+  " Icon / Text
+  CALL FUNCTION 'ICON_CREATE'
+    EXPORTING
+      name                  = 'ICON_CREATE'
+      text                  = 'MY Popup Text'
+      info                  = ' '
+<font color ="#0000FF">*     ADD_STDINF            = 'X'</font>
+    IMPORTING
+      result                = gv_icon
+    EXCEPTIONS
+      icon_not_found        = 1
+      outputfield_too_short = 2
+      OTHERS                = 3.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+  ENDIF.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

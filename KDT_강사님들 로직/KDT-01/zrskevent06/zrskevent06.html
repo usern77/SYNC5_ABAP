@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKEVENT06</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKEVENT06</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Append / Insert</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKEVENT05</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zrskevent06.
+
+DATA: gs_data  TYPE scarr,
+      gs_temp  LIKE gs_data,
+      gt_data  LIKE SORTED TABLE OF gs_data WITH UNIQUE KEY carrid,
+<font color ="#0000FF">*      gt_data  LIKE TABLE OF gs_data,</font>
+      gv_tabix TYPE sy-tabix.
+
+SELECT carrid carrname
+  FROM scarr
+  INTO CORRESPONDING FIELDS OF TABLE gt_data
+  ORDER BY carrid.
+
+gs_data-carrid = 'KA'.
+
+<font color ="#0000FF">* Case 1</font>
+<font color ="#0000FF">*APPEND gs_data TO gt_data. "Error / Success</font>
+
+<font color ="#0000FF">* Case 2</font>
+<font color ="#0000FF">*INSERT gs_data INTO gt_data INDEX 11. "Error / Success</font>
+
+<font color ="#0000FF">* Case 3</font>
+<font color ="#0000FF">*INSERT gs_data INTO TABLE gt_data. "Error / Success</font>
+
+<font color ="#0000FF">* Case 4</font>
+<font color ="#0000FF">*CLEAR gv_tabix.</font>
+<font color ="#0000FF">*LOOP AT gt_data INTO gs_temp.</font>
+<font color ="#0000FF">*  IF gs_temp-carrid &gt; gs_data-carrid.</font>
+<font color ="#0000FF">*    gv_tabix = sy-tabix.</font>
+<font color ="#0000FF">*    EXIT.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*  CLEAR gv_tabix.</font>
+<font color ="#0000FF">*  CLEAR gs_temp.</font>
+<font color ="#0000FF">*ENDLOOP.</font>
+<font color ="#0000FF">*IF gv_tabix IS INITIAL.</font>
+<font color ="#0000FF">*  DESCRIBE TABLE gt_data LINES gv_tabix.</font>
+<font color ="#0000FF">*  gv_tabix = gv_tabix + 1.</font>
+<font color ="#0000FF">*ENDIF.</font>
+<font color ="#0000FF">*INSERT gs_data INTO gt_data INDEX gv_tabix. "Error / Success</font>
+
+cl_demo_output=&gt;display_data( gt_data ).
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRSKEVENT03</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRSKEVENT03</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SK] Tree Sample</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRSKEVENT02</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zrskevent03top.html">zrskevent03top</a>.                              " Global Data
+include <a href ="zrskevent03o01.html">zrskevent03o01</a>.                            " PBO-Modules
+include <a href ="zrskevent03i01.html">zrskevent03i01</a>.                            " PAI-Modules
+include <a href ="zrskevent03f01.html">zrskevent03f01</a>.                            " FORM-Routines
+
+INITIALIZATION.
+
+
+AT SELECTION-SCREEN OUTPUT. "PBO
+
+AT SELECTION-SCREEN. "PAI
+
+
+START-OF-SELECTION.
+  PERFORM get_tree_data CHANGING gv_subrc gv_mesg.
+  IF gv_subrc &lt;&gt; 0.
+    MESSAGE i000(zmc00) WITH gv_mesg.
+    CLEAR: gv_subrc, gv_mesg.
+    RETURN.
+  ENDIF.
+  CALL SCREEN 0100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; Docking Container</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* H01 Main Condition</font>
+<font color ="#0000FF">* H02 Sub Condition</font>
+<font color ="#0000FF">* M01 Man</font>
+<font color ="#0000FF">* T01 Emp List</font>
+<font color ="#0000FF">* T02 Grade List</font>
+<font color ="#0000FF">* W01 Woman</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_SYEAR D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMC00</font>
+<font color ="#0000FF">*000   & & & &</font>
+<font color ="#0000FF">*001   Data is not found</font>
+<font color ="#0000FF">*007</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
