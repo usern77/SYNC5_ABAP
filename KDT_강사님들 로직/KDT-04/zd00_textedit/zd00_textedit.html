@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_TEXTEDIT</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_TEXTEDIT</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [D00] Text editor</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZD00_TEXTEDIT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& SE75에 오브젝트 등록</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zd00_textedit.
+
+include <a href ="zd00_textedit_top.html">zd00_textedit_top</a>.  " global data
+include <a href ="zd00_textedit_s01.html">zd00_textedit_s01</a>.  " selection screen
+include <a href ="zd00_textedit_c01.html">zd00_textedit_c01</a>.  " local class
+
+include <a href ="zd00_textedit_o01.html">zd00_textedit_o01</a>.  " pbo-modules
+include <a href ="zd00_textedit_i01.html">zd00_textedit_i01</a>.  " pai-modules
+
+include <a href ="zd00_textedit_f01.html">zd00_textedit_f01</a>.  " form-routines
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& START-OF-SELECTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+START-OF-SELECTION.
+
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [D00] Text editor</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

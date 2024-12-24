@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZTEXT_EDIT_COOO01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZTEXT_EDIT_COOO01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZTEXT_EDIT_COOO01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZTEXT_EDIT_COOO01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+  SET TITLEBAR 'T100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE CLEAR_OK_CODE OUTPUT.
+  CLEAR: OK_CODE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_ALV OUTPUT.
+  IF GO_CONT1 IS INITIAL.
+    CREATE OBJECT GO_CONT1
+      EXPORTING
+        CONTAINER_NAME              = 'AREA1'
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_ALV
+      EXPORTING
+        I_PARENT          = GO_CONT1
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    PERFORM SET_FCAT.
+
+    CALL METHOD GO_ALV-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        I_STRUCTURE_NAME              = 'ZSFLIGHT_C00'</font>
+<font color ="#0000FF">*       IS_LAYOUT                     =</font>
+      CHANGING
+        IT_OUTTAB                     = GT_DATA
+        IT_FIELDCATALOG               = GT_FCAT
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+
+  ELSE.
+
+    CALL METHOD GO_ALV-&gt;REFRESH_TABLE_DISPLAY
+      EXCEPTIONS
+        FINISHED = 1
+        OTHERS   = 2.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0110 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0110 OUTPUT.
+  SET PF-STATUS 'S110'.
+<font color ="#0000FF">* SET TITLEBAR 'xxx'.</font>
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_TEXTEDIT OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_TEXTEDIT OUTPUT.
+
+  IF GO_CONT2 IS INITIAL.
+
+    CREATE OBJECT GO_CONT2
+      EXPORTING
+        CONTAINER_NAME              = 'AREA2'
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_TEXT
+      EXPORTING
+<font color ="#0000FF">*       MAX_NUMBER_CHARS       =</font>
+<font color ="#0000FF">*       STYLE                  = 0</font>
+<font color ="#0000FF">*       WORDWRAP_MODE          = WORDWRAP_AT_WINDOWBORDER</font>
+<font color ="#0000FF">*       WORDWRAP_POSITION      = -1</font>
+<font color ="#0000FF">*       WORDWRAP_TO_LINEBREAK_MODE = FALSE</font>
+<font color ="#0000FF">*       FILEDROP_MODE          = DROPFILE_EVENT_OFF</font>
+        PARENT                 = GO_CONT2
+<font color ="#0000FF">*       LIFETIME               =</font>
+<font color ="#0000FF">*       NAME                   =</font>
+      EXCEPTIONS
+        ERROR_CNTL_CREATE      = 1
+        ERROR_CNTL_INIT        = 2
+        ERROR_CNTL_LINK        = 3
+        ERROR_DP_CREATE        = 4
+        GUI_TYPE_NOT_SUPPORTED = 5
+        OTHERS                 = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CALL METHOD GO_TEXT-&gt;SET_TOOLBAR_MODE
+      EXPORTING
+        TOOLBAR_MODE           = CL_GUI_TEXTEDIT=&gt;FALSE            " visibility of toolbar; eq 0: OFF ; ne 0: ON
+      EXCEPTIONS
+        ERROR_CNTL_CALL_METHOD = 1
+        INVALID_PARAMETER      = 2
+        OTHERS                 = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CALL METHOD GO_TEXT-&gt;SET_STATUSBAR_MODE
+      EXPORTING
+        STATUSBAR_MODE         = CL_GUI_TEXTEDIT=&gt;FALSE            " visibility of statusbar; eq 0: OFF ; ne 0: ON
+      EXCEPTIONS
+        ERROR_CNTL_CALL_METHOD = 1
+        INVALID_PARAMETER      = 2
+        OTHERS                 = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+  ELSE.
+
+    DATA: LV_TEXT TYPE STRING.
+    CLEAR: ZSFLIGHT_C00,
+           LV_TEXT.
+
+    CALL METHOD GO_TEXT-&gt;SET_TEXTSTREAM
+      EXPORTING
+        TEXT                   = LV_TEXT                 " Text as String with Carriage Returns and Linefeeds
+      EXCEPTIONS
+        ERROR_CNTL_CALL_METHOD = 1                " Error Calling COM Method
+        NOT_SUPPORTED_BY_GUI   = 2                " Method is not supported by installed GUI
+        OTHERS                 = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH</font>
+    ENDIF.
+
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module GET_DATA_DETAIL OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE GET_DATA_DETAIL OUTPUT.
+<font color ="#0000FF">*  DATA: LV_TEXT TYPE STRING.</font>
+
+  IF GV_MODE = 'CHG'.
+    SELECT SINGLE *
+      FROM ZSFLIGHT_C00
+      WHERE CARRID = 'AA'
+        AND CONNID = '0017'
+        AND FLDATE = '20240403'.
+
+    LV_TEXT =  ZSFLIGHT_C00-REMARK.
+
+    CALL METHOD GO_TEXT-&gt;SET_TEXTSTREAM
+      EXPORTING
+        TEXT                   = LV_TEXT                 " Text as String with Carriage Returns and Linefeeds
+      EXCEPTIONS
+        ERROR_CNTL_CALL_METHOD = 1                " Error Calling COM Method
+        NOT_SUPPORTED_BY_GUI   = 2                " Method is not supported by installed GUI
+        OTHERS                 = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+  ENDIF.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

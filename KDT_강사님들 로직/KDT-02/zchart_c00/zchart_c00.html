@@ -1,0 +1,481 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZCHART_C00</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZCHART_C00</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  ABAP Chart</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZCHART_C00</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZCHART_C00.
+
+DATA: OK_CODE TYPE SY-UCOMM.
+
+DATA: BEGIN OF GS_DATA,
+        CARRID   TYPE SCARR-CARRID,
+        CARRNAME TYPE SCARR-CARRNAME,
+        MON01    TYPE SFLIGHT-PAYMENTSUM,
+        MON02    TYPE SFLIGHT-PAYMENTSUM,
+        MON03    TYPE SFLIGHT-PAYMENTSUM,
+        MON04    TYPE SFLIGHT-PAYMENTSUM,
+        MON05    TYPE SFLIGHT-PAYMENTSUM,
+        MON06    TYPE SFLIGHT-PAYMENTSUM,
+        MON07    TYPE SFLIGHT-PAYMENTSUM,
+        MON08    TYPE SFLIGHT-PAYMENTSUM,
+        MON09    TYPE SFLIGHT-PAYMENTSUM,
+        MON10    TYPE SFLIGHT-PAYMENTSUM,
+        MON11    TYPE SFLIGHT-PAYMENTSUM,
+        MON12    TYPE SFLIGHT-PAYMENTSUM,
+        CURRENCY TYPE SFLIGHT-CURRENCY,
+      END OF GS_DATA.
+
+DATA: GS_LAYOUT TYPE LVC_S_LAYO.
+
+DATA: GT_DATA LIKE TABLE OF GS_DATA,
+      GT_FCAT TYPE LVC_T_FCAT.
+
+DATA: GO_DOCK       TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+      GO_CONT       TYPE REF TO CL_GUI_CONTAINER,
+      GO_CONT2      TYPE REF TO CL_GUI_CONTAINER,
+      GO_EASYSIMPLE TYPE REF TO CL_GUI_EASY_SPLITTER_CONTAINER,
+      GO_ALV        TYPE REF TO CL_GUI_ALV_GRID,
+      GO_CHART      TYPE REF TO CL_GUI_CHART_ENGINE.
+
+SELECTION-SCREEN BEGIN OF BLOCK BLK1 WITH FRAME.
+  PARAMETERS: PA_YEAR TYPE NUM4.
+SELECTION-SCREEN END OF BLOCK BLK1.
+
+
+CLASS LCL_EVENT_HANDLER DEFINITION.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      ON_HOTSPOT_CLICK FOR EVENT HOTSPOT_CLICK OF CL_GUI_ALV_GRID
+        IMPORTING ES_ROW_NO.
+
+ENDCLASS.
+
+CLASS LCL_EVENT_HANDLER IMPLEMENTATION.
+  METHOD ON_HOTSPOT_CLICK.
+
+    DATA: F_LENGHT TYPE I.
+    DATA: F_XSTRING TYPE XSTRING.
+    DATA: FO_IXML_MF TYPE REF TO IF_IXML.
+    DATA: FO_IXML_SF TYPE REF TO IF_IXML_STREAM_FACTORY.
+    DATA: F_IXML_DATA_DOC   TYPE REF TO IF_IXML_DOCUMENT.
+    DATA: F_OSTREAM         TYPE REF TO IF_IXML_OSTREAM.
+    DATA: F_ENCODING        TYPE REF TO IF_IXML_ENCODING.
+<font color ="#0000FF">* chart data elements:</font>
+    DATA: F_CHARTDATA  TYPE REF TO IF_IXML_ELEMENT,
+          F_CATEGORIES TYPE REF TO IF_IXML_ELEMENT,
+          F_CATEGORY   TYPE REF TO IF_IXML_ELEMENT,
+          F_SERIES     TYPE REF TO IF_IXML_ELEMENT,
+          F_POINT      TYPE REF TO IF_IXML_ELEMENT,
+          F_VALUE      TYPE REF TO IF_IXML_ELEMENT.
+
+    DATA: LV_INDEX  TYPE NUM02,
+          LV_STR    TYPE STRING,
+          LV_PAYSUM TYPE STRING.
+
+    FIELD-SYMBOLS: &lt;FS_COMP&gt; TYPE ANY.
+
+    IF GO_CHART IS INITIAL.
+      GO_CONT2 = GO_EASYSIMPLE-&gt;BOTTOM_RIGHT_CONTAINER.
+
+      CREATE OBJECT GO_CHART
+        EXPORTING
+          PARENT     = GO_CONT2
+        EXCEPTIONS
+          CNTL_ERROR = 1
+          OTHERS     = 2.
+      IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+      ENDIF.
+
+    ENDIF.
+
+<font color ="#0000FF">* processing data</font>
+    FO_IXML_MF = CL_IXML=&gt;CREATE( ).
+    FO_IXML_SF = FO_IXML_MF-&gt;CREATE_STREAM_FACTORY( ).
+
+<font color ="#0000FF">* create an empty document and set encoding</font>
+    F_IXML_DATA_DOC = FO_IXML_MF-&gt;CREATE_DOCUMENT( ).
+    F_ENCODING = FO_IXML_MF-&gt;CREATE_ENCODING(
+                             BYTE_ORDER    = IF_IXML_ENCODING=&gt;CO_LITTLE_ENDIAN
+                             CHARACTER_SET = 'utf-8' ).
+    F_IXML_DATA_DOC-&gt;SET_ENCODING( F_ENCODING ).
+
+<font color ="#0000FF">* Now build a DOM, representing an XML document with chart data</font>
+    F_CHARTDATA = F_IXML_DATA_DOC-&gt;CREATE_SIMPLE_ELEMENT(
+                                          NAME   = 'ChartData'
+                                          PARENT = F_IXML_DATA_DOC ).
+
+<font color ="#0000FF">* Categories (parent)</font>
+    F_CATEGORIES = F_IXML_DATA_DOC-&gt;CREATE_SIMPLE_ELEMENT(
+                                          NAME   = 'Categories'
+                                          PARENT = F_CHARTDATA ).
+
+<font color ="#0000FF">* Build series (we need only 1)</font>
+    F_SERIES = F_IXML_DATA_DOC-&gt;CREATE_SIMPLE_ELEMENT(
+              NAME = 'Series'
+              PARENT = F_CHARTDATA ).
+    F_SERIES-&gt;SET_ATTRIBUTE( NAME = 'customizing'
+                             VALUE = 'Series1' ).
+
+
+    READ TABLE GT_DATA INTO GS_DATA INDEX ES_ROW_NO-ROW_ID.
+
+    DO 12 TIMES.
+      LV_INDEX = SY-INDEX.
+
+      LV_STR = LV_INDEX && '월'.
+
+<font color ="#0000FF">* Categories (children)</font>
+      F_CATEGORY = F_IXML_DATA_DOC-&gt;CREATE_SIMPLE_ELEMENT(
+                                            NAME   = 'Category'
+                                            PARENT = F_CATEGORIES ).
+      F_CATEGORY-&gt;IF_IXML_NODE~SET_VALUE( LV_STR ).
+
+
+      F_POINT = F_IXML_DATA_DOC-&gt;CREATE_SIMPLE_ELEMENT(
+                                  NAME = 'Point'
+                                  PARENT = F_SERIES ).
+
+      F_VALUE = F_IXML_DATA_DOC-&gt;CREATE_SIMPLE_ELEMENT(
+                            NAME = 'Value'
+                            PARENT = F_POINT ).
+
+      LV_STR = 'GS_DATA-MON' && LV_INDEX.
+      ASSIGN (LV_STR) TO &lt;FS_COMP&gt;.
+      LV_PAYSUM = &lt;FS_COMP&gt;.
+      F_VALUE-&gt;IF_IXML_NODE~SET_VALUE( LV_PAYSUM ).
+
+      F_VALUE-&gt;SET_ATTRIBUTE(
+        EXPORTING
+          NAME      = 'type'
+          VALUE     = 'y'
+      ).
+
+      F_POINT-&gt;SET_ATTRIBUTE(
+        EXPORTING
+          NAME      = 'label'
+          VALUE     = LV_PAYSUM
+      ).
+    ENDDO.
+
+<font color ="#0000FF">* create ostream (into string variable) and render document into stream</font>
+    F_OSTREAM = FO_IXML_SF-&gt;CREATE_OSTREAM_XSTRING( F_XSTRING ).
+    F_IXML_DATA_DOC-&gt;RENDER( F_OSTREAM ). "here f_xstring is filled
+
+    "set data to chart
+    GO_CHART-&gt;SET_DATA( XDATA = F_XSTRING ).
+
+    "get customizing from Standard text - method found here
+<font color ="#0000FF">*      F_XSTRING = CHART_CUSTOMIZING(</font>
+<font color ="#0000FF">*                                          I_TEXTNAME = 'Z_MY_CHART_CUSTOMIZING'</font>
+<font color ="#0000FF">*                                          I_TITLE    = 'My nice chart'</font>
+<font color ="#0000FF">*                                          I_SUBTITLE = 'http://abapblog.com').</font>
+    "set customizing
+    GO_CHART-&gt;SET_CUSTOMIZING( XDATA = F_XSTRING ).
+
+    "render chart
+    GO_CHART-&gt;RENDER( ).
+
+  ENDMETHOD.
+ENDCLASS.
+
+INITIALIZATION.
+  PERFORM SET_YEAR.
+
+START-OF-SELECTION.
+  PERFORM GET_DATA.
+
+  CALL SCREEN 100.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_YEAR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_YEAR .
+
+  PA_YEAR = SY-DATUM(4).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM GET_DATA .
+
+  DATA: LV_MONTH TYPE STRING,
+        LV_INDEX TYPE NUM02,
+        LV_FNAME TYPE STRING.
+
+  DATA: BEGIN OF LS_SUM,
+          CARRID     TYPE SFLIGHT-CARRID,
+          PAYMENTSUM TYPE SFLIGHT-PAYMENTSUM,
+          CURRENCY   TYPE SFLIGHT-CURRENCY,
+        END OF LS_SUM.
+
+  DATA: LT_SUM LIKE TABLE OF LS_SUM.
+
+  FIELD-SYMBOLS: &lt;FS_COMP&gt; TYPE ANY.
+
+  DO 12 TIMES.
+    LV_INDEX = SY-INDEX.
+    LV_MONTH = PA_YEAR && LV_INDEX && '%'.
+
+    SELECT CARRID SUM( PAYMENTSUM ) CURRENCY
+      INTO TABLE LT_SUM
+      FROM SFLIGHT
+      WHERE FLDATE LIKE LV_MONTH
+      GROUP BY CARRID CURRENCY.
+
+    LOOP AT LT_SUM INTO LS_SUM.
+      GS_DATA-CARRID = LS_SUM-CARRID.
+      GS_DATA-CURRENCY = LS_SUM-CURRENCY.
+
+      LV_FNAME = 'GS_DATA-MON' && LV_INDEX.
+      ASSIGN (LV_FNAME) TO &lt;FS_COMP&gt;.
+      IF LV_INDEX = '01'.
+        &lt;FS_COMP&gt; = LS_SUM-PAYMENTSUM.
+        APPEND GS_DATA TO GT_DATA.
+
+      ELSE.
+        READ TABLE GT_DATA INTO GS_DATA WITH KEY CARRID = LS_SUM-CARRID.
+        IF SY-SUBRC = 0.
+          &lt;FS_COMP&gt; = LS_SUM-PAYMENTSUM.
+          MODIFY GT_DATA FROM GS_DATA INDEX SY-TABIX.
+        ELSE.
+          APPEND GS_DATA TO GT_DATA.
+        ENDIF.
+      ENDIF.
+      CLEAR: LS_SUM.
+    ENDLOOP.
+
+    CLEAR: GS_DATA.
+  ENDDO.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+  SET TITLEBAR 'T100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE CLEAR_OK_CODE OUTPUT.
+  CLEAR: OK_CODE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+
+  CASE OK_CODE.
+    WHEN 'BACK' OR 'CANC'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_ALV OUTPUT.
+  IF GO_DOCK IS INITIAL.
+    CREATE OBJECT GO_DOCK
+      EXPORTING
+        REPID                       = SY-REPID
+        DYNNR                       = SY-DYNNR
+        SIDE                        = CL_GUI_DOCKING_CONTAINER=&gt;DOCK_AT_TOP
+        EXTENSION                   = 2000
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*      MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                 WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_EASYSIMPLE
+      EXPORTING
+<font color ="#0000FF">*       METRIC            = cntl_metric_dynpro</font>
+        PARENT            = GO_DOCK
+        ORIENTATION       = 0
+        SASH_POSITION     = 30
+        WITH_BORDER       = 1
+      EXCEPTIONS
+        CNTL_ERROR        = 1
+        CNTL_SYSTEM_ERROR = 2
+        OTHERS            = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    GO_CONT = GO_EASYSIMPLE-&gt;TOP_LEFT_CONTAINER.
+
+    CREATE OBJECT GO_ALV
+      EXPORTING
+        I_PARENT          = GO_CONT
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+                 WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+    ENDIF.
+
+    PERFORM SET_FCAT.
+    PERFORM SET_LAYOUT.
+
+    SET HANDLER LCL_EVENT_HANDLER=&gt;ON_HOTSPOT_CLICK FOR GO_ALV.
+
+    CALL METHOD GO_ALV-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        IS_LAYOUT                     = GS_LAYOUT
+      CHANGING
+        IT_OUTTAB                     = GT_DATA
+        IT_FIELDCATALOG               = GT_FCAT
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_FCAT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_FCAT .
+
+  PERFORM FILL_FCAT TABLES GT_FCAT USING:
+    '1'   'CARRID'     'SFLIGHT'  ''           ''     'X',
+    '2'   'CARRNAME'   'SCARR'    ''           ''     '',
+    '3'   'MON01'      'SFLIGHT'  'PAYMENTSUM' '1월'   '',
+    '4'   'MON02'      'SFLIGHT'  'PAYMENTSUM' '2월'   '',
+    '5'   'MON03'      'SFLIGHT'  'PAYMENTSUM' '3월'   '',
+    '6'   'MON04'      'SFLIGHT'  'PAYMENTSUM' '4월'   '',
+    '7'   'MON05'      'SFLIGHT'  'PAYMENTSUM' '5월'   '',
+    '8'   'MON06'      'SFLIGHT'  'PAYMENTSUM' '6월'   '',
+    '9'   'MON07'      'SFLIGHT'  'PAYMENTSUM' '7월'   '',
+    '10'  'MON08'      'SFLIGHT'  'PAYMENTSUM' '8월'   '',
+    '11'  'MON09'      'SFLIGHT'  'PAYMENTSUM' '9월'   '',
+    '12'  'MON10'      'SFLIGHT'  'PAYMENTSUM' '10월'  '',
+    '13'  'MON11'      'SFLIGHT'  'PAYMENTSUM' '11월'  '',
+    '14'  'MON12'      'SFLIGHT'  'PAYMENTSUM' '12월'  '',
+    '15'  'CURRENCY'   'SFLIGHT'  'CURRENCY'   ''     ''.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form fill_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GT_FCAT</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM FILL_FCAT  TABLES   PT_FCAT STRUCTURE LVC_S_FCAT
+                USING    PV_COL_POS TYPE LVC_S_FCAT-COL_POS
+                         PV_FIELDNAME TYPE LVC_S_FCAT-FIELDNAME
+                         PV_REF_TABLE TYPE LVC_S_FCAT-REF_TABLE
+                         PV_REF_FIELD TYPE LVC_S_FCAT-REF_FIELD
+                         PV_COLTEXT TYPE LVC_S_FCAT-COLTEXT
+                         PV_HOTSPOT TYPE LVC_S_FCAT-HOTSPOT.
+
+  DATA: LS_FCAT TYPE LVC_S_FCAT.
+
+  LS_FCAT-COL_POS = PV_COL_POS.
+  LS_FCAT-FIELDNAME = PV_FIELDNAME.
+  LS_FCAT-REF_TABLE = PV_REF_TABLE.
+  LS_FCAT-REF_FIELD = PV_REF_FIELD.
+  LS_FCAT-HOTSPOT = PV_HOTSPOT.
+
+  IF PV_COLTEXT IS NOT INITIAL.
+    LS_FCAT-COLTEXT = PV_COLTEXT.
+  ENDIF.
+
+  APPEND LS_FCAT TO PT_FCAT.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_LAYOUT .
+
+  GS_LAYOUT-ZEBRA = 'X'.
+  GS_LAYOUT-CWIDTH_OPT = 'X'.
+
+ENDFORM.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; Carrier Payment Sum</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_YEAR         Year</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_DOCKING_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_DOCKING_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_DOCKING_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_DOCKING_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE gt_sflight
+           FROM sflight
+          WHERE carrid IN so_carr
+            AND connid IN so_conn.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form init_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM init_data .
+
+  so_carr-sign   = 'I'.
+  so_carr-option = 'EQ'.
+  so_carr-low    = 'AA'.
+
+  APPEND so_carr.
+  CLEAR so_carr.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data .
+
+  LOOP AT gt_sflight INTO gs_sflight.
+
+    " 1) LIGHT
+    IF gs_sflight-seatsocc = 0.
+      gs_sflight-light = '1'.
+    ELSEIF gs_sflight-seatsocc &lt; 50.
+      gs_sflight-light = '2'.
+    ELSE.
+      gs_sflight-light = '3'.
+    ENDIF.
+
+
+    " 2) row COLOR
+    IF gs_sflight-fldate(6) = sy-datum(6).
+      gs_sflight-color = 'C' && col_negative && '01'.
+<font color ="#0000FF">*      gs_sflight-color = 'C601'.</font>
+    ENDIF.
+
+    " 3) cell color (IT_COL)
+<font color ="#0000FF">*   highlight specific aircraft</font>
+    IF gs_sflight-planetype = '747-400'.
+      gs_color-fname     = 'PLANETYPE'.
+      gs_color-color-col = col_positive.
+      gs_color-color-int = 1.
+      gs_color-color-inv = 0.
+      gs_color-nokeycol = 'X'.
+      APPEND gs_color TO gs_sflight-it_col.
+    ENDIF.
+
+    IF gs_sflight-carrid = 'UA'.
+      gs_color-fname     = 'CARRID'.
+      gs_color-color-col = col_negative.
+      gs_color-color-int = 1.
+      gs_color-color-inv = 0.
+      gs_color-nokeycol = 'X'.
+      APPEND gs_color TO gs_sflight-it_col.
+
+    ENDIF.
+
+<font color ="#0000FF">*    MODIFY gt_sflight FROM gs_sflight.</font>
+    MODIFY gt_sflight FROM gs_sflight TRANSPORTING light
+                                                   color
+                                                   it_col.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_layout_variant</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_layout_variant .
+
+  gs_variant1-report = sy-cprog.
+
+  "해당 프로그램에 저장된 variant 가져오는 표준 함수
+  CALL FUNCTION 'LVC_VARIANT_SAVE_LOAD'
+    EXPORTING
+      i_save_load = 'F'
+    CHANGING
+      cs_variant  = gs_variant1
+    EXCEPTIONS
+      OTHERS      = 1.
+
+  IF sy-subrc = 0.   "selection screen상에 값을 리턴
+    pa_var = gs_variant1-variant.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_cont_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_cont_grid .
+
+  " container
+  CREATE OBJECT go_grid1
+    EXPORTING
+      i_parent = go_cont1.
+
+  CREATE OBJECT go_grid2
+    EXPORTING
+      i_parent = go_cont2.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_catalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_catalog .
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+  "-- layout variant, save mode
+  gs_variant-report  = sy-cprog.
+  gs_variant-variant = pa_var.
+
+  gv_save = 'A'.    "X, U
+
+  "-- layout
+  gs_layout-excp_fname = 'LIGHT'.
+<font color ="#0000FF">*    gs_layout-excp_led   = 'X'.</font>
+  gs_layout-zebra      = 'X'.
+<font color ="#0000FF">*    gs_layout-no_hgridln = 'X'.</font>
+<font color ="#0000FF">*    gs_layout-no_vgridln = 'X'.</font>
+  gs_layout-sel_mode    = 'A'.
+  gs_layout-cwidth_opt  = 'X'.
+<font color ="#0000FF">*    gs_layout-no_rowmark  = 'X'.</font>
+  gs_layout-smalltitle  = 'X'.
+  gs_layout-grid_title  = 'ALV'.
+
+  gs_layout-info_fname  = 'COLOR'.   "line (=row) color coding
+  gs_layout-ctab_fname  = 'IT_COL'.  "cell (=column) color coding
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_sort</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sort .
+
+  CLEAR gs_sort.
+  gs_sort-fieldname = 'FLDATE'.
+  gs_sort-spos      = 1.
+  APPEND gs_sort TO gt_sort.
+
+  CLEAR gs_sort.
+  gs_sort-fieldname = 'CARRID'.
+  gs_sort-spos      = 2.
+  APPEND gs_sort TO gt_sort.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_filter</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_filter .
+
+<font color ="#0000FF">*  gs_filt-fieldname = 'CARRID'.</font>
+<font color ="#0000FF">*  gs_filt-sign      = 'I'.</font>
+<font color ="#0000FF">*  gs_filt-option    = 'EQ'.</font>
+<font color ="#0000FF">*  gs_filt-low       = 'AA'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  APPEND gs_filt TO gt_filt.</font>
+<font color ="#0000FF">*  CLEAR gs_filt.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_exclude_toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_exclude_toolbar .
+
+  "-- Exclude toolbar
+  APPEND '&FIND' TO gt_excluded.
+<font color ="#0000FF">*    APPEND cl_gui_alv_grid=&gt;mc_fc_find TO gt_excluded.</font>
+  APPEND cl_gui_alv_grid=&gt;mc_mb_sum  TO gt_excluded.
+<font color ="#0000FF">*    APPEND cl_gui_alv_grid=&gt;mc_fc_info TO gt_excluded.</font>
+<font color ="#0000FF">*    APPEND cl_gui_alv_grid=&gt;MC_FC_EXCL_ALL TO gt_excluded.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid .
+
+  IF  go_grid1 IS NOT INITIAL.
+
+    CALL METHOD go_grid1-&gt;set_table_for_first_display
+      EXPORTING
+        i_structure_name     = 'SFLIGHT'
+        is_variant           = gs_variant
+        i_save               = gv_save
+        is_layout            = gs_layout
+        it_toolbar_excluding = gt_excluded
+      CHANGING
+        it_outtab            = gt_sflight
+        it_sort              = gt_sort
+        it_filter            = gt_filt.
+
+  ENDIF.
+
+  IF  go_grid2 IS NOT INITIAL.
+
+    CALL METHOD go_grid2-&gt;set_table_for_first_display
+      EXPORTING
+        i_structure_name     = 'SFLIGHT'
+        is_variant           = gs_variant
+        i_save               = gv_save
+        is_layout            = gs_layout
+        it_toolbar_excluding = gt_excluded
+      CHANGING
+        it_outtab            = gt_sflight
+        it_sort              = gt_sort
+        it_filter            = gt_filt.
+  ENDIF.
+
+  IF  go_grid3 IS NOT INITIAL.
+
+    CALL METHOD go_grid3-&gt;set_table_for_first_display
+      EXPORTING
+        i_structure_name     = 'SFLIGHT'
+        is_variant           = gs_variant
+        i_save               = gv_save
+        is_layout            = gs_layout
+        it_toolbar_excluding = gt_excluded
+      CHANGING
+        it_outtab            = gt_sflight
+        it_sort              = gt_sort
+        it_filter            = gt_filt.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form custom_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM custom_container .
+
+<font color ="#0000FF">*  IF go_custom IS INITIAL.</font>
+  IF go_custom IS NOT BOUND.
+
+    CREATE OBJECT go_custom   "constructor method  (IMPORT, EXCEPTIONS)
+      EXPORTING
+        container_name = 'MY_CONTROL'
+      EXCEPTIONS
+        OTHERS         = 1.
+
+    CREATE OBJECT go_grid1
+      EXPORTING
+        i_parent = go_custom
+      EXCEPTIONS
+        OTHERS   = 1.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form docking_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 2# ### #### ## (custom control #### ###.)</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM docking_container .
+
+  IF go_dock1 IS INITIAL. "( = IS NOT BOUND. )
+
+    CREATE OBJECT go_dock1
+      EXPORTING
+        repid     = sy-repid
+        dynnr     = sy-dynnr
+<font color ="#0000FF">*       side      = 8</font>
+        side      = go_dock1-&gt;dock_at_top                 "instance  -&gt;
+<font color ="#0000FF">*       side      = cl_gui_docking_container=&gt;dock_at_top  "static    =&gt;</font>
+        extension = 100.   " N pixcel
+
+    CREATE OBJECT go_dock2
+      EXPORTING
+        repid     = sy-repid
+        dynnr     = sy-dynnr
+<font color ="#0000FF">*       side      = go_dock2-&gt;dock_at_left   "default</font>
+        extension = 500.   " N pixcel
+
+    CREATE OBJECT go_dock3
+      EXPORTING
+        repid     = sy-repid
+        dynnr     = sy-dynnr
+        side      = go_dock3-&gt;dock_at_right
+        extension = 6000.   "N pixcel
+
+    PERFORM create_dock_grid.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form split_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM split_container .
+
+  CASE 'X'.
+    WHEN pa_s1.
+
+      " 1. custom container
+
+      IF go_custom IS INITIAL.
+
+        CREATE OBJECT go_custom
+          EXPORTING
+            container_name = 'MY_CONTROL'.
+
+        CREATE OBJECT go_split
+          EXPORTING
+            parent  = go_custom
+            rows    = 2
+            columns = 2.
+
+        CALL METHOD go_split-&gt;get_container
+          EXPORTING
+            row       = 1
+            column    = 1
+          RECEIVING
+            container = go_cont1.
+
+        CALL METHOD go_split-&gt;get_container
+          EXPORTING
+            row       = 2
+            column    = 1
+          RECEIVING
+            container = go_cont2.
+
+<font color ="#0000FF">*    go_cont1 = go_split-&gt;get_container(  column = 1 row = 1  ).</font>
+
+<font color ="#0000FF">*        go_cont1 = go_split-&gt;get_container( row = 1 column = 1 ).</font>
+<font color ="#0000FF">*        go_cont2 = go_split-&gt;get_container( row = 2 column = 1 ).</font>
+
+        PERFORM create_cont_grid.
+
+      ENDIF.
+
+      " 2. docking container
+
+    WHEN pa_s2.
+
+      IF go_dock1 IS INITIAL.
+
+        CREATE OBJECT go_dock1
+          EXPORTING
+            repid     = sy-repid
+            dynnr     = sy-dynnr
+            side      = go_dock1-&gt;dock_at_top
+<font color ="#0000FF">*           side      = cl_gui_docking_container=&gt;dock_at_top</font>
+            extension = 1000.
+
+        CREATE OBJECT go_split
+          EXPORTING
+            parent  = go_dock1
+            rows    = 2
+            columns = 1.
+
+<font color ="#0000FF">*  split container# container# ###.</font>
+        CALL METHOD go_split-&gt;get_container
+          EXPORTING
+            row       = 1
+            column    = 1
+          RECEIVING
+            container = go_cont1.
+
+        CALL METHOD go_split-&gt;get_container
+          EXPORTING
+            row       = 2
+            column    = 1
+          RECEIVING
+            container = go_cont2.
+
+        CALL METHOD go_split-&gt;set_row_height
+          EXPORTING
+            id     = 2
+            height = 10.
+
+        PERFORM create_cont_grid.
+
+      ENDIF.
+
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form easy_split_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM easy_split_container .
+
+  IF go_custom IS INITIAL.
+
+    CREATE OBJECT go_custom
+      EXPORTING
+        container_name = 'MY_CONTROL'.
+
+    CREATE OBJECT go_esplit
+      EXPORTING
+        parent        = go_custom
+        orientation   = 0   " 0 , 1
+        sash_position = 30.
+
+    go_cont1 = go_esplit-&gt;top_left_container.
+    go_cont2 = go_esplit-&gt;bottom_right_container.
+
+    PERFORM create_cont_grid.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_carrid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; SO_CARR_LOW</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_carrid  USING    pv_carrid.
+
+  DATA : lv_carrid TYPE s_carr_id.
+
+  CHECK pv_carrid IS NOT INITIAL.
+
+  SELECT SINGLE carrid INTO lv_carrid
+                       FROM scarr
+                      WHERE carrid = pv_carrid.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE e000 WITH '없는 코드입니다.'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form modify_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM modify_screen .
+
+  LOOP AT SCREEN.
+    IF pa_r3 = 'X'.
+      IF screen-group1 = 'ADD'.
+        screen-active = '1'.
+      ENDIF.
+    ELSE.
+      IF screen-group1 = 'ADD'.
+        screen-active = '0'.
+      ENDIF.
+    ENDIF.
+    MODIFY SCREEN.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_dock_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_dock_grid .
+
+  " docking
+  CREATE OBJECT go_grid1
+    EXPORTING
+      i_parent = go_dock1
+    EXCEPTIONS
+      OTHERS   = 1.
+
+  CREATE OBJECT go_grid2
+    EXPORTING
+      i_parent = go_dock2
+    EXCEPTIONS
+      OTHERS   = 1.
+
+  CREATE OBJECT go_grid3
+    EXPORTING
+      i_parent = go_dock3
+    EXCEPTIONS
+      OTHERS   = 1.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form dialog_box_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM dialog_box_container .
+
+  IF go_dialog IS INITIAL.
+
+    CREATE OBJECT go_dialog
+      EXPORTING
+        width  = 640
+        height = 500
+        top    = 50
+        left   = 50
+        repid  = sy-repid
+        dynnr  = sy-dynnr.
+
+    CREATE OBJECT go_grid1
+      EXPORTING
+        i_parent = go_dialog.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_event_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_event_handler .
+
+  CREATE OBJECT go_handler.
+  SET HANDLER go_handler-&gt;handle_close FOR go_dialog.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_data .
+
+  CLEAR gv_lin.
+
+  IF gt_sflight IS NOT INITIAL.
+
+    " opt1.
+    DESCRIBE TABLE gt_sflight LINES gv_lin.
+    MESSAGE s002 WITH gv_lin.
+
+    " opt2.
+<font color ="#0000FF">*    DESCRIBE TABLE gt_sflight.</font>
+<font color ="#0000FF">*    MESSAGE s002 WITH sy-tfill.</font>
+
+    CALL SCREEN 100.
+
+  ELSE.
+
+    MESSAGE s001.
+    LEAVE LIST-PROCESSING.
+<font color ="#0000FF">*    LEAVE TO LIST-PROCESSING AND RETURN TO SCREEN 0.</font>
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form docking_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM docking_screen .
+
+  IF go_dock1 IS INITIAL. "( = IS NOT BOUND. )
+
+    CREATE OBJECT go_dock1
+      EXPORTING
+        repid     = sy-repid
+        dynnr     = sy-dynnr
+<font color ="#0000FF">*       side      = 8</font>
+        side      = go_dock1-&gt;dock_at_bottom                 "instance  -&gt;
+<font color ="#0000FF">*       side      = cl_gui_docking_container=&gt;dock_at_top  "static    =&gt;</font>
+        extension = 400.   " N pixcel
+
+    CREATE OBJECT go_grid1
+      EXPORTING
+        i_parent = go_dock1
+      EXCEPTIONS
+        OTHERS   = 1.
+
+  ENDIF.
+
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

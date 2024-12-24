@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_DOCKING_C00</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_DOCKING_C00</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Docking Container</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report YTEST_02</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZALV_DOCKING_C00.
+
+DATA: OK_CODE TYPE SY-UCOMM.
+
+DATA: GT_DATA TYPE TABLE OF ZTEMP_C00,
+      GS_DATA LIKE LINE OF GT_DATA.
+
+DATA: GO_DOCK TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+      GO_ALV  TYPE REF TO CL_GUI_ALV_GRID.
+
+SELECTION-SCREEN BEGIN OF BLOCK BLK1 WITH FRAME TITLE TEXT-T01.
+  SELECT-OPTIONS: SO_PER FOR GS_DATA-PERNR,
+                  SO_NAM FOR GS_DATA-ENAME,
+  SO_GEH FOR GS_DATA-GESCH NO-EXTENSION NO INTERVALS.
+
+   PARAMETERS: pa_car TYPE scarr-CARRID as LISTBOX VISIBLE LENGTH 20.
+SELECTION-SCREEN END OF BLOCK BLK1.
+
+SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DATA
+  FROM ZTEMP_C00
+  WHERE PERNR IN SO_PER
+    AND ENAME IN SO_NAM
+    AND GESCH IN SO_GEH.
+
+CALL SCREEN 100.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+  SET TITLEBAR 'T100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+
+  CASE OK_CODE.
+    WHEN 'BACK' OR 'CANCEL'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_ALV OUTPUT.
+  IF GO_DOCK IS INITIAL.
+    CREATE OBJECT GO_DOCK
+      EXPORTING
+        REPID                       = SY-REPID
+        DYNNR                       = SY-DYNNR
+        SIDE                        = CL_GUI_DOCKING_CONTAINER=&gt;DOCK_AT_TOP   "스크린에 컨테이너생성 시 기준. TOP, BOOTOM, LEFT, RIGHT.
+        EXTENSION                   = 300    " 컨테이터 크기 설정.
+<font color ="#0000FF">*       NO_AUTODEF_PROGID_DYNNR     = ABAP_TRUE</font>
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+<font color ="#0000FF">*    CALL METHOD GO_DOCK-&gt;SET_ENABLE</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        ENABLE            = ' '                 " Enable/disable state flag</font>
+<font color ="#0000FF">*      EXCEPTIONS</font>
+<font color ="#0000FF">*        CNTL_ERROR        = 1                " CNTL_ERROR</font>
+<font color ="#0000FF">*        CNTL_SYSTEM_ERROR = 2                " CNTL_SYSTEM_ERROR</font>
+<font color ="#0000FF">*        OTHERS            = 3.</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">**     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">**       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+
+
+    CREATE OBJECT GO_ALV
+      EXPORTING
+        I_PARENT          = GO_DOCK
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CALL METHOD GO_ALV-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+<font color ="#0000FF">*       i_buffer_active               =</font>
+<font color ="#0000FF">*       i_bypassing_buffer            =</font>
+<font color ="#0000FF">*       i_consistency_check           =</font>
+        I_STRUCTURE_NAME              = 'ZTEMP_C00'
+<font color ="#0000FF">*       is_variant                    =</font>
+<font color ="#0000FF">*       i_save                        =</font>
+<font color ="#0000FF">*       i_default                     = 'X'</font>
+<font color ="#0000FF">*       is_layout                     =</font>
+<font color ="#0000FF">*       is_print                      =</font>
+<font color ="#0000FF">*       it_special_groups             =</font>
+<font color ="#0000FF">*       it_toolbar_excluding          =</font>
+<font color ="#0000FF">*       it_hyperlink                  =</font>
+<font color ="#0000FF">*       it_alv_graphics               =</font>
+<font color ="#0000FF">*       it_except_qinfo               =</font>
+<font color ="#0000FF">*       ir_salv_adapter               =</font>
+      CHANGING
+        IT_OUTTAB                     = GT_DATA
+<font color ="#0000FF">*       it_fieldcatalog               =</font>
+<font color ="#0000FF">*       it_sort                       =</font>
+<font color ="#0000FF">*       it_filter                     =</font>
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+
+  ENDIF.
+ENDMODULE.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; &1 Carrier List</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 검색조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CAR D       .</font>
+<font color ="#0000FF">* SO_GEH D       .</font>
+<font color ="#0000FF">* SO_NAM D       .</font>
+<font color ="#0000FF">* SO_PER D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

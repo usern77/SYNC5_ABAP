@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZALV_EVENT_C00TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZALV_EVENT_C00TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZALV_EVENT_C00TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include MZALV_EVENT_C00TOP                       - Module Pool      SAPMZALV_EVENT_C00</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM SAPMZALV_EVENT_C00.
+
+TABLES: ZSEXAMPLE01_C00.
+
+DATA: OK_CODE TYPE SY-UCOMM,
+      GV_MODE TYPE CHAR1.
+
+DATA: BEGIN OF GS_DATA.
+        include structure <a href ="ztspfli_b00/dictionary-ztspfli_b00.html">ZTSPFLI_B00</a>.
+DATA:   CHK_BOX TYPE CHAR1,
+        IT_CELL TYPE LVC_T_STYL,
+      END OF GS_DATA.
+
+DATA: GT_DATA LIKE TABLE OF GS_DATA.
+
+DATA: GS_LAYOUT TYPE LVC_S_LAYO.
+
+DATA: GT_TOOLBAR TYPE UI_FUNCTIONS,
+      GT_FCAT    TYPE LVC_T_FCAT.
+
+DATA: GO_CONT TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_ALV  TYPE REF TO CL_GUI_ALV_GRID.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

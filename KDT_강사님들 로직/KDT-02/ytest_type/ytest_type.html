@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>YTEST_TYPE</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: YTEST_TYPE</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Program YTEST_TYPE</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report YTEST_TYPE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT YTEST_TYPE.
+
+CLASS LCL_CLASS DEFINITION.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      ON_METH IMPORTING IS_DATA TYPE SIMPLE
+                        IT_DATA TYPE ANY TABLE.
+
+ENDCLASS.
+
+CLASS LCL_CLASS IMPLEMENTATION.
+  METHOD ON_METH.
+    WRITE:/ IS_DATA.
+  ENDMETHOD.
+ENDCLASS.
+
+DATA: BEGIN OF LS_DATA,
+        COL_1 TYPE C LENGTH 10 VALUE 'AA',
+        COL_2 TYPE D VALUE '20241010',
+        COL_3 TYPE T VALUE '111001',
+        COL_4 TYPE N LENGTH 3 VALUE '1243',
+        COL_5 TYPE I VALUE 10,
+      END OF LS_DATA.
+
+DATA: LT_DATA LIKE SORTED TABLE OF LS_DATA WITH NON-UNIQUE KEY COL_1.
+
+START-OF-SELECTION.
+
+  CALL METHOD LCL_CLASS=&gt;ON_METH
+    EXPORTING
+      IS_DATA = LS_DATA-COL_1
+      IT_DATA = LT_DATA.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

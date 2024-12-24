@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_LISTBOX</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_LISTBOX</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [C3] ALV List box</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZALV_LISTBOX</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zalv_listboxtop.html">zalv_listboxtop</a>.    " Global Data
+
+include <a href ="zalv_listboxs01.html">zalv_listboxs01</a>.  " Selection screen
+include <a href ="zalv_listboxc01.html">zalv_listboxc01</a>.  " ALV Events
+include <a href ="zalv_listboxo01.html">zalv_listboxo01</a>.  " PBO-Modules
+include <a href ="zalv_listboxi01.html">zalv_listboxi01</a>.  " PAI-Modules
+include <a href ="zalv_listboxf01.html">zalv_listboxf01</a>.  " FORM-Routines
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* INITIALIZATION</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  PERFORM set_init_value.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* START-OF-SELECTION</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+  PERFORM get_base_data.
+  PERFORM screen_change.
+
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE100 --&gt; [C3] Conference room Reservation System</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* E01 삭제할 행을 선택하세요.</font>
+<font color ="#0000FF">* E02 저장 할 데이터가 없습니다.</font>
+<font color ="#0000FF">* E03 사용자가 현재 편집 중 입니다.</font>
+<font color ="#0000FF">* I01 Reservate date</font>
+<font color ="#0000FF">* I02 Team</font>
+<font color ="#0000FF">* L00 전체</font>
+<font color ="#0000FF">* L01 1조 - SAPOOD</font>
+<font color ="#0000FF">* L02 2조 - SYNC YOUNG</font>
+<font color ="#0000FF">* L03 3조 - SW SYNC BIG</font>
+<font color ="#0000FF">* T01 Condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_GROUP         Team</font>
+<font color ="#0000FF">* SO_RESDT         Reservation date</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: K5</font>
+<font color ="#0000FF">*001   & & & &</font>
+<font color ="#0000FF">*102   Data has been saved</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD24_MM090_E01_C</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD24_MM090_E01_C</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD24_MM090_E01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD24_MM090_E01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* INITIALIZATION  :  화면 요소 초기값 설정</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  sscrfields-functxt_01 = icon_xls && '엑셀 템플릿 다운로드'. "엑셀 다운로드 버튼 추가
+
+<font color ="#0000FF">*- tab 버튼 텍스트</font>
+  tab1 = TEXT-b01. " 조회
+  tab2 = TEXT-b02. " 자재 다중 생성
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**  IF gv_flag IS INITIAL.</font>
+<font color ="#0000FF">*    tabstrip-activetab = 'CREATE'. " tab 이름</font>
+<font color ="#0000FF">*    tabstrip-dynnr     = 1200.    " subscreen 화면 번호</font>
+<font color ="#0000FF">*  ENDIF.</font>
+
+<font color ="#0000FF">*- 초기 탭 화면</font>
+<font color ="#0000FF">*  CASE sscrfields-ucomm.</font>
+<font color ="#0000FF">*    WHEN 'CREATE'. "자재 다중 생성</font>
+<font color ="#0000FF">*      gv_dynnr = 1200.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    WHEN 'DISPLAY'. "조회</font>
+<font color ="#0000FF">*      gv_dynnr = 1100.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    WHEN OTHERS.</font>
+<font color ="#0000FF">*  tabstrip-activetab = 'DISPLAY'.  " tab 이름</font>
+<font color ="#0000FF">*  tabstrip-dynnr     = 1100.    " subscreen 화면 번호</font>
+
+<font color ="#0000FF">*      IF gv_active IS NOT INITIAL.</font>
+<font color ="#0000FF">*        tabstrip-activetab = gv_active.  " tab 이름</font>
+<font color ="#0000FF">*        CASE gv_active.</font>
+<font color ="#0000FF">*            WHEN 'DISPLAY'.</font>
+<font color ="#0000FF">*            gv_dynnr = 1100.</font>
+<font color ="#0000FF">*            WHEN 'CREATE'.</font>
+<font color ="#0000FF">*            gv_dynnr = 1200.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        ENDCASE.</font>
+<font color ="#0000FF">*      ELSE.</font>
+<font color ="#0000FF">*        tabstrip-activetab = 'DISPLAY'.  " tab 이름</font>
+<font color ="#0000FF">*        tabstrip-dynnr     = 1100.    " subscreen 화면 번호</font>
+<font color ="#0000FF">*      ENDIF.</font>
+
+<font color ="#0000FF">*  ENDCASE.</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* AT SELECTION-SCREEN  :  입력 화면 이벤트 처리 (PAI)</font>
+<font color ="#0000FF">**********************************************************************</font>
+AT SELECTION-SCREEN.
+
+  CASE sscrfields-ucomm.
+    WHEN 'FC01'.
+      PERFORM download_excel. " 딕셔너리에 저장된 형태를 엑셀로 불러옴
+  ENDCASE.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  엑셀 파일 경로 창에 서치헬프 기능 구현</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR pa_excel.
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      field_name = 'PA_EXCEL'
+    IMPORTING
+      file_name  = pa_excel.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* START-OF-SELECTION  :  실행( F8 ) 후 동작</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+<font color ="#0000FF">*  CASE tabstrip-activetab.</font>
+<font color ="#0000FF">*    WHEN 'DISPLAY'.   "조회</font>
+<font color ="#0000FF">*      PERFORM get_data.</font>
+<font color ="#0000FF">*      " 메세지로 gt_mat 의 라인수를 메세지 Stype 으로 알려주면서 조회하도록 한다.</font>
+<font color ="#0000FF">*      IF gt_mat IS INITIAL.</font>
+<font color ="#0000FF">*        MESSAGE s001 DISPLAY LIKE 'E'.  "입력 필드 값에 맞는 조건의 데이터가 없을 경우 메세지 출려</font>
+<font color ="#0000FF">*      ELSE.</font>
+<font color ="#0000FF">*        CALL SCREEN 100.</font>
+<font color ="#0000FF">*      ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    WHEN 'CREATE'.   "엑셀 업로드</font>
+<font color ="#0000FF">*      PERFORM check_pa_excel.   "올바른 파일 경로 체크</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      CHECK gv_flag IS INITIAL.</font>
+<font color ="#0000FF">**      IF gv_flag &lt;&gt; 'X'.</font>
+<font color ="#0000FF">*      PERFORM upload_excel.     "엑셀 파일 데이터 업로드</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      CALL SCREEN 100.     " 두번째 단계 인터널 테이블을 한 번 ALV 확인절차!   =&gt; SAVE 버튼 추가</font>
+<font color ="#0000FF">**      ENDIF.</font>
+<font color ="#0000FF">*  ENDCASE.</font>
+
+  gv_flag = 'X'.
+  BREAK-POINT.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>YTEST_BOOK</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: YTEST_BOOK</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Program YTEST_BOOK</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report YTEST_BOOK</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT YTEST_BOOK.
+
+DATA: GT_SBOOK TYPE TABLE OF SBOOK.
+
+DATA: OK_CODE TYPE SY-UCOMM.
+
+DATA: GO_CONT TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_ALV  TYPE REF TO CL_GUI_ALV_GRID.
+
+DATA: GS_LAYOUT TYPE LVC_S_LAYO.
+
+SELECT *
+  INTO TABLE GT_SBOOK
+  FROM SBOOK
+  UP TO 100 ROWS.
+
+CALL SCREEN 100.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+<font color ="#0000FF">* SET TITLEBAR 'xxx'.</font>
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_ALV OUTPUT.
+  IF GO_CONT IS INITIAL.
+    CREATE OBJECT GO_CONT
+      EXPORTING
+        CONTAINER_NAME              = 'AREA'                  " Name of the Screen CustCtrl Name to Link Container To
+      EXCEPTIONS
+        CNTL_ERROR                  = 1                " CNTL_ERROR
+        CNTL_SYSTEM_ERROR           = 2                " CNTL_SYSTEM_ERROR
+        CREATE_ERROR                = 3                " CREATE_ERROR
+        LIFETIME_ERROR              = 4                " LIFETIME_ERROR
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5                " LIFETIME_DYNPRO_DYNPRO_LINK
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_ALV
+      EXPORTING
+        I_PARENT          = GO_CONT                 " Parent Container
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1                " Error when creating the control
+        ERROR_CNTL_INIT   = 2                " Error While Initializing Control
+        ERROR_CNTL_LINK   = 3                " Error While Linking Control
+        ERROR_DP_CREATE   = 4                " Error While Creating DataProvider Control
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    GS_LAYOUT-CWIDTH_OPT = 'A'.
+
+    CALL METHOD GO_ALV-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        I_BYPASSING_BUFFER            = 'X'                 " Switch Off Buffer
+        I_STRUCTURE_NAME              = 'SBOOK'
+        IS_LAYOUT                     = GS_LAYOUT                 " Layout
+      CHANGING
+        IT_OUTTAB                     = GT_SBOOK            " Output Table
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1                " Wrong Parameter
+        PROGRAM_ERROR                 = 2                " Program Errors
+        TOO_MANY_LINES                = 3                " Too many Rows in Ready for Input Grid
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+  ENDIF.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

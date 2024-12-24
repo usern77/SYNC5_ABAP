@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>SAPMZD00_CREATE_CUSTOM</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: SAPMZD00_CREATE_CUSTOM</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  BDC 레코드용 샘플 프로그램</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Modulpool SAPMZD00_CREATE_CUSTOM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="mzd00_create_customtop.html">mzd00_create_customtop</a>.
+include <a href ="mzd00_create_customo01.html">mzd00_create_customo01</a>.
+include <a href ="mzd00_create_customi01.html">mzd00_create_customi01</a>.
+include <a href ="mzd00_create_customf01.html">mzd00_create_customf01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* DYN_0100 --&gt; Kunde anlegen</font>
+<font color ="#0000FF">* DYN_0100 --&gt; Create customer</font>
+<font color ="#0000FF">* DYN_0100 --&gt; Kunde anlegen</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 001 Data has been changed. Save before exiting transaction?</font>
+<font color ="#0000FF">* 003 Create cust.</font>
+<font color ="#0000FF">* 004 Date will be deleted. Continue?</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: BC414</font>
+<font color ="#0000FF">*015   Customer number &1 created successfully</font>
+<font color ="#0000FF">*048   Changes not successful</font>
+<font color ="#0000FF">*070   Supply of numbers exceeded critical level</font>
+<font color ="#0000FF">*071   Caution: Last number was taken</font>
+<font color ="#0000FF">*072   No more free numbers</font>
+<font color ="#0000FF">*073   Internal error supplying numbers (sy-subrc = &1)</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

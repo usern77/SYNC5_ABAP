@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>SAPMZLKW_TEST</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: SAPMZLKW_TEST</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [MM] 품질 검수 및 입고 확정</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool      SAPMZC502MM0003</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+INCLUDE sapmzlkw_test_top.
+
+INCLUDE sapmzlkw_test_c01.
+INCLUDE sapmzlkw_test_o01.
+INCLUDE sapmzlkw_test_i01.
+INCLUDE sapmzlkw_test_f01.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T0100 --&gt; [MM] 품질 검수 및 입고 확정</font>
+<font color ="#0000FF">* T0103 --&gt; [MM] 폐기처리 팝업</font>
+<font color ="#0000FF">* T0200 --&gt; [MM] 자재 불량처리</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* B01 입고 확정</font>
+<font color ="#0000FF">* B02 불량 처리</font>
+<font color ="#0000FF">* F01 자재명</font>
+<font color ="#0000FF">* F02 총수량</font>
+<font color ="#0000FF">* F03 단위</font>
+<font color ="#0000FF">* F04 단가</font>
+<font color ="#0000FF">* F05 통화</font>
+<font color ="#0000FF">* F06 입고일자</font>
+<font color ="#0000FF">* F07 입고완료</font>
+<font color ="#0000FF">* F08 공장</font>
+<font color ="#0000FF">* F09 창고</font>
+<font color ="#0000FF">* F10 정상수량</font>
+<font color ="#0000FF">* F11 불량수량</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   검수 완료된 자재를 제외하고 선택해주세요</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZC502M01</font>
+<font color ="#0000FF">*000   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

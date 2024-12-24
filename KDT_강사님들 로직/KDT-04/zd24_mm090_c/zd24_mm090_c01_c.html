@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD24_MM090_C01_C</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD24_MM090_C01_C</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD24_MM090_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**& Include          ZD24_MM090_C01</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**----------------------------------------------------------------------*</font>
+<font color ="#0000FF">**       CLASS LCL_HANDLER DEFINITION [정의부]</font>
+<font color ="#0000FF">**----------------------------------------------------------------------*</font>
+CLASS lcl_handler DEFINITION.
+  PUBLIC SECTION.
+    " toolbar
+    CLASS-METHODS on_toolbar FOR EVENT toolbar OF cl_gui_alv_grid
+      IMPORTING e_object.
+
+    CLASS-METHODS: handle_data_changed FOR EVENT data_changed OF cl_gui_alv_grid
+      IMPORTING er_data_changed.
+
+    " user command
+    CLASS-METHODS on_user_command FOR EVENT user_command OF cl_gui_alv_grid
+      IMPORTING e_ucomm.
+
+    " 수정된 행의 데이터 보관을 위한 내부 테이블
+    CLASS-DATA gt_changed_mat TYPE TABLE OF gty_mat WITH DEFAULT KEY.
+ENDCLASS.
+
+CLASS lcl_handler IMPLEMENTATION.
+  METHOD on_toolbar.
+    PERFORM set_toolbar USING e_object. "alv grid 툴바 세팅
+  ENDMETHOD.
+
+
+  METHOD handle_data_changed.
+
+    DATA: ls_mod_cell    TYPE lvc_s_modi,
+          ls_changed_mat TYPE gty_mat,
+          lv_new_value   TYPE i.
+
+    CLEAR gv_changed_rows.  " 변경된 셀 개수를 초기화
+
+    " 변경된 셀을 확인하여 수정된 데이터를 저장
+    LOOP AT er_data_changed-&gt;mt_good_cells INTO ls_mod_cell.
+
+      " 필드별 유효성 검사
+      CASE ls_mod_cell-fieldname.
+        WHEN 'SAFSTO'.
+          lv_new_value = ls_mod_cell-value.
+          IF lv_new_value &gt; 14000 .
+            er_data_changed-&gt;add_protocol_entry(
+              EXPORTING
+                i_msgid     = 'ZDC_MSG'
+                i_msgno     = '037'
+                i_msgty     = 'E'
+<font color ="#0000FF">*                i_msgv1     = '안전재고는 5000 이하이어야 합니다'</font>
+                i_fieldname = ls_mod_cell-fieldname
+                i_row_id    = ls_mod_cell-row_id
+            ).
+            er_data_changed-&gt;modify_cell(
+              EXPORTING
+                i_row_id    = ls_mod_cell-row_id
+                i_fieldname = ls_mod_cell-fieldname
+                i_value     = ls_mod_cell-value
+            ).
+            CONTINUE.
+          ENDIF.
+
+        WHEN 'LDTIME'.
+          lv_new_value = ls_mod_cell-value.
+          IF lv_new_value &gt; 30.
+            er_data_changed-&gt;add_protocol_entry(
+              EXPORTING
+                i_msgid     = 'ZDC_MSG'
+                i_msgno     = '038'
+                i_msgty     = 'E'
+<font color ="#0000FF">*                i_msgv1     = '리드타임은 30일 이하이어야 합니다'</font>
+                i_fieldname = ls_mod_cell-fieldname
+                i_row_id    = ls_mod_cell-row_id
+            ).
+            er_data_changed-&gt;modify_cell(
+              EXPORTING
+                i_row_id    = ls_mod_cell-row_id
+                i_fieldname = ls_mod_cell-fieldname
+                i_value     = ls_mod_cell-value
+            ).
+            CONTINUE.
+          ENDIF.
+
+        WHEN 'DDAT'.
+          lv_new_value = ls_mod_cell-value.
+          IF lv_new_value &gt; 1095.
+            er_data_changed-&gt;add_protocol_entry(
+              EXPORTING
+                i_msgid     = 'ZDC_MSG'
+                i_msgno     = '039'
+                i_msgty     = 'E'
+<font color ="#0000FF">*                i_msgv1     = '유통기한은 1080일 이하이어야 합니다'</font>
+                i_fieldname = ls_mod_cell-fieldname
+                i_row_id    = ls_mod_cell-row_id
+            ).
+            er_data_changed-&gt;modify_cell(
+              EXPORTING
+                i_row_id    = ls_mod_cell-row_id
+                i_fieldname = ls_mod_cell-fieldname
+                i_value     = ls_mod_cell-value
+            ).
+            CONTINUE.
+          ENDIF.
+
+        WHEN 'AGEDAT'.
+          lv_new_value = ls_mod_cell-value.
+          IF lv_new_value &gt; 30.
+            er_data_changed-&gt;add_protocol_entry(
+              EXPORTING
+                i_msgid     = 'ZDC_MSG'
+                i_msgno     = '040'
+                i_msgty     = 'E'
+<font color ="#0000FF">*                i_msgv1     = '숙성소요일은 30일 이하이어야 합니다'</font>
+                i_fieldname = ls_mod_cell-fieldname
+                i_row_id    = ls_mod_cell-row_id
+            ).
+            er_data_changed-&gt;modify_cell(
+              EXPORTING
+                i_row_id    = ls_mod_cell-row_id
+                i_fieldname = ls_mod_cell-fieldname
+                i_value     = ls_mod_cell-value
+            ).
+            CONTINUE.
+          ENDIF.
+
+        WHEN 'OKTEMP'.
+          lv_new_value = ls_mod_cell-value.
+          IF lv_new_value &gt; 50.
+            er_data_changed-&gt;add_protocol_entry(
+              EXPORTING
+                i_msgid     = 'ZDC_MSG'
+                i_msgno     = '041'
+                i_msgty     = 'E'
+<font color ="#0000FF">*                i_msgv1     = '적정온도는 50도 이하이어야 합니다'</font>
+                i_fieldname = ls_mod_cell-fieldname
+                i_row_id    = ls_mod_cell-row_id
+            ).
+            er_data_changed-&gt;modify_cell(
+              EXPORTING
+                i_row_id    = ls_mod_cell-row_id
+                i_fieldname = ls_mod_cell-fieldname
+                i_value     = ls_mod_cell-value
+            ).
+            CONTINUE.
+          ENDIF.
+      ENDCASE.
+
+      " 유효성 검사를 통과한 경우 기존 로직 실행
+      READ TABLE gt_mat INTO gs_mat INDEX ls_mod_cell-row_id.
+      IF sy-subrc = 0.
+        " 현재 사용자 정보 저장
+        gs_mat-changed_by = sy-uname.
+        gs_mat-changed_on = sy-datum.
+        gs_mat-changed_time = sy-uzeit.
+
+        " gs_mat의 데이터를 ls_changed_mat에 할당
+        ls_changed_mat = gs_mat.
+
+        " 변경된 데이터를 gt_changed_mat에 추가
+        APPEND ls_changed_mat TO gt_changed_mat.
+
+        " 원본 데이터 수정
+        MODIFY gt_mat FROM gs_mat INDEX ls_mod_cell-row_id.
+
+        " 변경된 행 개수 증가
+        ADD 1 TO gv_changed_rows. " 데이터가 변경되었으므로 카운트 증가
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD on_user_command.
+    CASE e_ucomm.
+      WHEN 'EDIT'. "수정 버튼
+        PERFORM change_edit_mode.
+      WHEN 'DELETE'. "삭제 버튼
+        PERFORM delete_porder.
+        CALL METHOD cl_gui_cfw=&gt;set_new_ok_code   "데이터 refresh 위해 PBO 다시 타기
+          EXPORTING
+            new_code = 'E_UCOMM'.
+      WHEN 'CREATE'. "자재 단일 생성 버튼
+        PERFORM create_porder.
+    ENDCASE.
+    CLEAR e_ucomm.
+  ENDMETHOD.
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

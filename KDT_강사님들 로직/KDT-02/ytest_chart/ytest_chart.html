@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>YTEST_CHART</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: YTEST_CHART</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [C3] R3 Chart sample</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZR3_CHART</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="ytest_charttop.html">YTEST_CHARTTOP</a>.
+include <a href ="ytest_charts01.html">YTEST_CHARTS01</a>.
+include <a href ="ytest_chartc01.html">YTEST_CHARTC01</a>.
+include <a href ="ytest_charto01.html">YTEST_CHARTO01</a>.
+include <a href ="ytest_charti01.html">YTEST_CHARTI01</a>.
+include <a href ="ytest_chartf01.html">YTEST_CHARTF01</a>.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* INITIALIZATION</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  PERFORM set_init_value.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* START-OF-SELECTION</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+  PERFORM get_base_data.
+
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE100 --&gt; [C3] R3 Chart sample</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 Condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CARR D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: K5</font>
+<font color ="#0000FF">*037   No data found</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

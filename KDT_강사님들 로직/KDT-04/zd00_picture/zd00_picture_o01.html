@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_PICTURE_O01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_PICTURE_O01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_PICTURE_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_PICTURE_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0100 OUTPUT.
+  SET PF-STATUS 'STATUS_0100'.
+  SET TITLEBAR 'TITLE_0100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_PIC_CONTROL OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE init_pic_control OUTPUT.
+
+  IF go_cont IS INITIAL.
+
+<font color ="#0000FF">* 컨테이너 생성 + 그리드 생성 및 연결</font>
+    CREATE OBJECT go_cont
+      EXPORTING
+        container_name = 'LOGO'.
+
+    CREATE OBJECT go_pic
+      EXPORTING
+        parent = go_cont.
+
+    CALL METHOD go_pic-&gt;set_display_mode
+      EXPORTING
+        display_mode = cl_gui_picture=&gt;display_mode_normal. "속성으로 보기 옵션 선택 가능
+
+    CALL FUNCTION 'DP_PUBLISH_WWW_URL'
+      EXPORTING
+        objid    = gt_wwwtab-objid
+        lifetime = 'T'
+      IMPORTING
+        url      = gv_url
+      EXCEPTIONS
+        OTHERS   = 1.
+
+    IF sy-subrc = 0.
+      CALL METHOD go_pic-&gt;load_picture_from_url_async
+        EXPORTING
+          url = gv_url.
+    ENDIF.
+
+  ENDIF.
+
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

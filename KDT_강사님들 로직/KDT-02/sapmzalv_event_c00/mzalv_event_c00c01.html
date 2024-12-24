@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZALV_EVENT_C00C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZALV_EVENT_C00C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZALV_EVENT_C00C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZALV_EVENT_C00C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+CLASS LCL_EVENT_HANDLER DEFINITION.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      ON_DOUBLE_CLICK FOR EVENT DOUBLE_CLICK OF CL_GUI_ALV_GRID
+        IMPORTING ES_ROW_NO E_COLUMN,
+
+      ON_HOTSPOT_CLICK FOR EVENT HOTSPOT_CLICK OF CL_GUI_ALV_GRID
+        IMPORTING ES_ROW_NO E_COLUMN_ID,
+
+      ON_TOOLBAR FOR EVENT TOOLBAR OF CL_GUI_ALV_GRID
+        IMPORTING E_OBJECT,
+
+      ON_USER_COMMAND FOR EVENT USER_COMMAND OF CL_GUI_ALV_GRID
+        IMPORTING E_UCOMM,
+      ON_DATA_CHANGED FOR EVENT DATA_CHANGED OF CL_GUI_ALV_GRID
+        IMPORTING ER_DATA_CHANGED.
+
+ENDCLASS.
+
+CLASS LCL_EVENT_HANDLER IMPLEMENTATION.
+  METHOD ON_DOUBLE_CLICK.
+
+    IF SY-SUBRC = 0.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD ON_HOTSPOT_CLICK.
+
+  ENDMETHOD.
+
+  METHOD ON_TOOLBAR.
+
+    DATA: LS_BUTTON TYPE STB_BUTTON.
+
+    LS_BUTTON-FUNCTION = 'ADD'.
+    LS_BUTTON-TEXT = 'Add Row'.
+    LS_BUTTON-ICON = ICON_ADD_ROW.
+<font color ="#0000FF">*    ls_button-disabled = gv_mode.</font>
+    APPEND LS_BUTTON TO E_OBJECT-&gt;MT_TOOLBAR.
+
+
+    CLEAR: LS_BUTTON.
+    LS_BUTTON-FUNCTION = 'DEL'.
+    LS_BUTTON-TEXT = 'Del Row'.
+    LS_BUTTON-ICON = ICON_REMOVE_ROW.
+    APPEND LS_BUTTON TO E_OBJECT-&gt;MT_TOOLBAR.
+
+    CLEAR: LS_BUTTON.
+    LS_BUTTON-FUNCTION = 'CHG'.
+    LS_BUTTON-TEXT = 'Chg Row'.
+    LS_BUTTON-ICON = ICON_CHANGE.
+    APPEND LS_BUTTON TO E_OBJECT-&gt;MT_TOOLBAR.
+
+    CLEAR: LS_BUTTON.
+    LS_BUTTON-FUNCTION = 'SAVE'.
+    LS_BUTTON-TEXT = 'Save'.
+    LS_BUTTON-ICON = ICON_SYSTEM_SAVE.
+    APPEND LS_BUTTON TO E_OBJECT-&gt;MT_TOOLBAR.
+
+  ENDMETHOD.
+
+  METHOD ON_USER_COMMAND.
+
+    DATA: LT_ROW TYPE LVC_T_ROID,
+          LS_ROW TYPE LVC_S_ROID.
+
+    DATA: LS_CELL TYPE LINE OF LVC_T_STYL.
+
+
+    DATA: LT_SELDATA LIKE GT_DATA.
+
+    DATA: LT_DD03L TYPE TABLE OF DD03L,
+          LS_DD03L LIKE LINE OF LT_DD03L.
+
+    SELECT *
+      INTO CORRESPONDING FIELDS OF TABLE LT_DD03L
+      FROM DD03L
+      WHERE TABNAME = 'ZTSPFLI_B00'.
+
+    CASE E_UCOMM.
+      WHEN 'ADD'.
+        LOOP AT LT_DD03L INTO LS_DD03L.
+          LS_CELL-FIELDNAME = LS_DD03L-FIELDNAME.
+          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.
+          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.
+        ENDLOOP.
+
+        LS_CELL-FIELDNAME = 'CHK_BOX'.
+        LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.
+        INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.
+
+        INSERT GS_DATA INTO GT_DATA INDEX 1.
+      WHEN 'DEL'.
+
+<font color ="#0000FF">*        CALL METHOD GO_ALV-&gt;GET_SELECTED_ROWS</font>
+<font color ="#0000FF">*          IMPORTING</font>
+<font color ="#0000FF">*            ET_ROW_NO = LT_ROW.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**        READ TABLE LT_ROW INTO LS_ROW INDEX 1.</font>
+<font color ="#0000FF">**        DELETE GT_DATA INDEX LS_ROW-ROW_ID.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        LOOP AT LT_ROW INTO LS_ROW.</font>
+<font color ="#0000FF">*          READ TABLE GT_DATA INTO GS_DATA INDEX LS_ROW-ROW_ID.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          APPEND GS_DATA TO LT_SELDATA.</font>
+<font color ="#0000FF">*          CLEAR: LS_ROW, GS_DATA.</font>
+<font color ="#0000FF">*        ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        LOOP AT LT_SELDATA INTO GS_DATA.</font>
+<font color ="#0000FF">*          DELETE TABLE GT_DATA FROM GS_DATA.</font>
+<font color ="#0000FF">*        ENDLOOP.</font>
+
+        DELETE GT_DATA WHERE CHK_BOX = 'X'.
+      WHEN 'CHG'.
+        LOOP AT GT_DATA INTO GS_DATA WHERE CHK_BOX = 'X'.
+
+          LOOP AT LT_DD03L INTO LS_DD03L.
+            LS_CELL-FIELDNAME = LS_DD03L-FIELDNAME.
+            LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.
+            INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.
+          ENDLOOP.
+
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'COUNTRYFR'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'CITYFROM'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'AIRPFROM'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'COUNTRYTO'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'CITYTO'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'AIRPTO'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'FLTIME'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'DEPTIME'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LS_CELL-FIELDNAME = 'ARRTIME'.</font>
+<font color ="#0000FF">*          LS_CELL-STYLE =  CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.</font>
+<font color ="#0000FF">*          INSERT LS_CELL INTO TABLE GS_DATA-IT_CELL.</font>
+
+          MODIFY GT_DATA FROM GS_DATA TRANSPORTING IT_CELL.
+
+          CLEAR: GS_DATA, LS_CELL.
+        ENDLOOP.
+      WHEN 'SAVE'.
+
+    ENDCASE.
+
+    CALL METHOD CL_GUI_CFW=&gt;SET_NEW_OK_CODE
+      EXPORTING
+        NEW_CODE = 'ENTER'.                 " New OK_CODE
+
+  ENDMETHOD.
+
+  METHOD ON_DATA_CHANGED.
+<font color ="#0000FF">*    IF SY-SUBRC = 0.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    ENDIF.</font>
+
+    FIELD-SYMBOLS: &lt;FS_ITAB&gt; TYPE ANY TABLE.
+
+    ASSIGN ER_DATA_CHANGED-&gt;MP_MOD_ROWS-&gt;* TO &lt;FS_ITAB&gt;.
+
+<font color ="#0000FF">*ER_DATA_CHANGED-&gt;MT_ROID_FRONT.</font>
+
+<font color ="#0000FF">*    LOOP AT &lt;fs_itab&gt; INTO .</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    ENDLOOP.</font>
+
+  ENDMETHOD.
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

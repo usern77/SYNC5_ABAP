@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZEXCEL_UPLOADTOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZEXCEL_UPLOADTOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZEXCEL_UPLOADTOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZEXCEL_UPLOADTOP                         - Report ZEXCEL_UPLOAD</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zexcel_upload MESSAGE-ID k5.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* TYPE-POOLS</font>
+<font color ="#0000FF">**********************************************************************</font>
+TYPE-POOLS vrm.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* TABLES</font>
+<font color ="#0000FF">**********************************************************************</font>
+TABLES : bbkpf, bbseg, sscrfields.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Macro</font>
+<font color ="#0000FF">**********************************************************************</font>
+DEFINE _init.
+
+  REFRESH &1.
+  CLEAR &1.
+
+END-OF-DEFINITION.
+
+DEFINE _ranges.
+
+  &1 = VALUE #( sign    = &2
+                option  = &3
+                low     = &4
+                high    = &5 ).
+  APPEND &1.
+
+END-OF-DEFINITION.
+
+DEFINE _date_interval.
+
+  CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+    EXPORTING
+      date      = &1
+      days      = &2
+      months    = &3
+      signum    = &4
+      years     = &5
+    IMPORTING
+      calc_date = &6.
+
+END-OF-DEFINITION.
+
+DEFINE _last_day.
+
+  CALL FUNCTION 'LAST_DAY_OF_MONTHS'
+    EXPORTING
+      day_in            = &1
+    IMPORTING
+      last_day_of_month = &1.
+
+END-OF-DEFINITION.
+
+DEFINE _popup_to_confirm.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      text_question         = &1
+      text_button_1         = 'Yes'(001)
+      text_button_2         = 'No'(002)
+      display_cancel_button = 'X'
+    IMPORTING
+      answer                = &2
+    EXCEPTIONS
+      text_not_found        = 1
+      OTHERS                = 2.
+
+END-OF-DEFINITION.
+
+DEFINE _range.
+
+  &1 = VALUE #( sign    = &2
+                option  = &3
+                low     = &4
+                high    = &5 ).
+
+  APPEND &1.
+  CLEAR &1.
+
+END-OF-DEFINITION.
+
+DEFINE _alpha_input.
+
+  CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+    EXPORTING
+      input  = &1
+    IMPORTING
+      output = &1.
+
+END-OF-DEFINITION.
+
+DEFINE _msg_build.
+
+  CALL FUNCTION 'MESSAGE_TEXT_BUILD'
+    EXPORTING
+      msgid               = &1
+      msgnr               = &2
+      msgv1               = &3
+      msgv2               = &4
+      msgv3               = &5
+      msgv4               = &6
+    IMPORTING
+      message_text_output = &7.
+
+END-OF-DEFINITION.
+
+DEFINE _idoc_to_sap.
+
+  CALL FUNCTION 'CURRENCY_AMOUNT_IDOC_TO_SAP'
+    EXPORTING
+      currency    = &1
+      idoc_amount = &2
+    IMPORTING
+      sap_amount  = &3.
+
+END-OF-DEFINITION.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Class instance</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : go_container     TYPE REF TO cl_gui_docking_container,
+       go_alv_grid      TYPE REF TO cl_gui_alv_grid,
+<font color ="#0000FF">*-- For Top-of-page -------------------------------------------------*</font>
+       go_top_container TYPE REF TO cl_gui_docking_container,
+       go_dyndoc_id     TYPE REF TO cl_dd_document,
+       go_html_cntrl    TYPE REF TO cl_gui_html_viewer.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Internal table and Work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : BEGIN OF gs_excel,
+        bukrs TYPE bkpf-bukrs,
+        gjahr TYPE bkpf-gjahr,
+        belnr TYPE bkpf-belnr,
+        blart TYPE bkpf-blart,
+        budat TYPE bkpf-budat,
+        bldat TYPE bkpf-bldat,
+        bktxt TYPE bkpf-bktxt,
+        waers TYPE bkpf-waers,
+        dmbtr(20),
+       END OF gs_excel.
+
+DATA : gt_body  TYPE TABLE OF ztbkpf,
+       gt_excel LIKE TABLE OF gs_excel,
+       gs_body  TYPE ztbkpf.
+
+<font color ="#0000FF">*-- For ALV</font>
+DATA : gt_fcat   TYPE lvc_t_fcat,
+       gs_fcat   TYPE lvc_s_fcat,
+       gs_layout TYPE lvc_s_layo,
+       gs_stable TYPE lvc_s_stbl.
+
+<font color ="#0000FF">*-- For select box in selection screen</font>
+DATA : gs_vrm_name  TYPE vrm_id,
+       gs_vrm_posi  TYPE vrm_values,
+       gs_vrm_value LIKE LINE OF gs_vrm_posi.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Commmon variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : gv_okcode TYPE sy-ucomm,
+       gv_tcode  TYPE sy-tcode,
+       gv_file   LIKE rlgrap-filename.
+
+<font color ="#0000FF">*-- For file path</font>
+DATA : w_pickedfolder  TYPE string,
+       w_initialfolder TYPE string,
+       w_fullinfo      TYPE string,
+       w_pfolder       TYPE rlgrap-filename. "MEMORY ID mfolder.
+
+<font color ="#0000FF">*-- For 1000 screen button</font>
+DATA : w_functxt TYPE smp_dyntxt,
+       it_files  TYPE filetable,
+       st_files  LIKE LINE OF it_files,
+       w_rc      TYPE i,
+       w_dir     TYPE string.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

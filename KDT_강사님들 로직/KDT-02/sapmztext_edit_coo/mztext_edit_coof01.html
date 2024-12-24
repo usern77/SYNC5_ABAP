@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZTEXT_EDIT_COOF01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZTEXT_EDIT_COOF01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZTEXT_EDIT_COOF01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZTEXT_EDIT_COOF01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE gt_data
+    FROM zsflight_c00.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat .
+
+  DATA: ls_fcat TYPE lvc_s_fcat.
+
+  CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
+    EXPORTING
+      i_structure_name       = 'ZSFLIGHT_C00'
+    CHANGING
+      ct_fieldcat            = gt_fcat
+    EXCEPTIONS
+      inconsistent_interface = 1
+      program_error          = 2
+      OTHERS                 = 3.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+  ENDIF.
+
+  LOOP AT gt_fcat INTO ls_fcat.
+    CASE ls_fcat-fieldname.
+      WHEN 'REMARK'.
+<font color ="#0000FF">*        ls_fcat-tech = 'X'.</font>
+<font color ="#0000FF">*        ls_fcat-hotspot = 'X'.</font>
+        ls_fcat-OUTPUTLEN = 30.
+        MODIFY gt_fcat FROM ls_fcat.
+    ENDCASE.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form call_screen_modal</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_screen_modal .
+  CALL SCREEN 110 STARTING AT 10 3.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SAVE_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM save_data .
+
+  DATA: lv_text TYPE string.
+
+  DATA: lt_table TYPE STANDARD TABLE OF char75.
+
+  CALL METHOD go_text-&gt;get_textstream
+    IMPORTING
+      text                   = lv_text          " Text as String with Carriage Returns and Linefeeds
+    EXCEPTIONS
+      error_cntl_call_method = 1
+      not_supported_by_gui   = 2
+      OTHERS                 = 3.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*     WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+  CALL METHOD cl_gui_cfw=&gt;flush
+    EXCEPTIONS
+      cntl_system_error = 1                " cntl_system_error
+      cntl_error        = 2                " cntl_error
+      OTHERS            = 3.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*     WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+  zsflight_c00-remark = lv_text.
+  INSERT zsflight_c00.
+  IF sy-subrc = 0.
+    MESSAGE 'Success, Data save!' TYPE 'S'.
+    LEAVE TO SCREEN 0.
+  ELSE.
+    MESSAGE 'Error, Data save!' TYPE 'E'.
+  ENDIF.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

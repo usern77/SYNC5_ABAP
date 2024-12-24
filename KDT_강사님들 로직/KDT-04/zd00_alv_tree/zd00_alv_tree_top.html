@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_ALV_TREE_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_ALV_TREE_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_ALV_TREE_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_ALV_TREE_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* definition of tables, types, data and constants</font>
+
+<font color ="#0000FF">* tables</font>
+TABLES: scarr, sflight, spfli, saplane.
+
+CLASS : cl_event_receiver DEFINITION DEFERRED.
+DATA : go_handler TYPE REF TO cl_event_receiver.
+
+CLASS : cl_tree_event_receiver DEFINITION DEFERRED.
+DATA : go_tree_handler TYPE REF TO cl_tree_event_receiver.
+
+<font color ="#0000FF">* internal tables</font>
+DATA : gt_scarr     TYPE TABLE OF scarr,
+       gs_scarr     TYPE scarr,
+
+       gt_db_spfli  TYPE TABLE OF spfli,
+       gs_db_spfli  TYPE spfli,
+
+       gt_spfli     TYPE TABLE OF spfli,
+       gs_spfli     TYPE spfli,
+
+       gt_sflight   TYPE TABLE OF sflight,
+       gs_sflight   TYPE sflight,
+
+       gt_saplane   TYPE TABLE OF saplane,
+       gs_saplane   TYPE saplane,
+
+       gt_header    TYPE TABLE OF slis_listheader WITH HEADER LINE,
+
+       gt_fcat      TYPE lvc_t_fcat,
+       gs_fcat      TYPE lvc_s_fcat,
+
+       gt_sort      TYPE lvc_t_sort,
+       gs_sort      TYPE lvc_s_sort,
+
+       gt_row_table TYPE lvc_t_row WITH HEADER LINE.  " selected rows
+
+DATA :go_cont             TYPE REF TO cl_gui_custom_container,
+      go_dock             TYPE REF TO cl_gui_docking_container,
+      go_grid             TYPE REF TO cl_gui_alv_grid,
+      go_tree1            TYPE REF TO cl_gui_alv_tree,
+      gs_hierarchy_header TYPE treev_hhdr,
+      gs_layout           TYPE lvc_s_layo,
+      gs_toolbar          TYPE stb_button,
+      gv_handle_tree      TYPE i,
+      gv_handle_alv       TYPE i,
+      ok_code             LIKE sy-ucomm,
+      gv_flag.
+
+
+CONSTANTS : gc_x VALUE 'X'.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

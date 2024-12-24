@@ -1,0 +1,264 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_TOOLBAR_EVENT_RECEIVER</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_TOOLBAR_EVENT_RECEIVER</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include BCALV_TOOLBAR_EVENT_RECEIVER</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*   INCLUDE BCALV_TOOLBAR_EVENT_RECEIVER                               *</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+
+class lcl_toolbar_event_receiver definition.
+
+  public section.
+    methods: on_function_selected
+               for event function_selected of cl_gui_toolbar
+                 importing fcode,
+
+             on_toolbar_dropdown
+               for event dropdown_clicked of cl_gui_toolbar
+                 importing fcode
+                           posx
+                           posy.
+
+endclass.
+
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       CLASS lcl_toolbar_event_receiver IMPLEMENTATION</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       ........                                                      *</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+class lcl_toolbar_event_receiver implementation.
+
+  method on_function_selected.
+    data: ls_sflight type sflight.
+    case fcode.
+      when 'DELETE'.
+<font color ="#0000FF">*       get selected node</font>
+        data: lt_selected_node type lvc_t_nkey.
+        call method tree1-&gt;get_selected_nodes
+               changing
+                  ct_selected_nodes = lt_selected_node.
+        call method cl_gui_cfw=&gt;flush.
+        data l_selected_node type lvc_nkey.
+        read table lt_selected_node into l_selected_node index 1.
+
+<font color ="#0000FF">*       delete subtree</font>
+        if not l_selected_node is initial.
+          call method tree1-&gt;delete_subtree
+                  exporting
+                     i_node_key                = l_selected_node
+                     i_update_parents_expander = ''
+                     i_update_parents_folder   = 'X'.
+        else.
+          message i227(0h).
+        endif.
+      when 'INSERT_LC'.
+<font color ="#0000FF">*       get selected node</font>
+        call method tree1-&gt;get_selected_nodes
+               changing
+                  ct_selected_nodes = lt_selected_node.
+        call method cl_gui_cfw=&gt;flush.
+        read table lt_selected_node into l_selected_node index 1.
+<font color ="#0000FF">*       get current Line</font>
+        if not l_selected_node is initial.
+          call method tree1-&gt;get_outtab_line
+                  exporting
+                      i_node_key = l_selected_node
+                  importing
+                      e_outtab_line = ls_sflight.
+          ls_sflight-seatsmax = ls_sflight-price + 99.
+          ls_sflight-price = ls_sflight-seatsmax + '99.99'.
+          call method tree1-&gt;add_node
+            exporting
+              i_relat_node_key = l_selected_node
+              i_relationship   = cl_tree_control_base=&gt;relat_last_child
+              is_outtab_line   = ls_sflight
+<font color ="#0000FF">*             is_node_layout</font>
+<font color ="#0000FF">*             it_item_layout</font>
+              i_node_text      = 'Last Child'.           "#EC NOTEXT
+<font color ="#0000FF">*           importing</font>
+<font color ="#0000FF">*             e_new_node_key</font>
+        else.
+          message i227(0h).
+        endif.
+      when 'INSERT_FC'.
+<font color ="#0000FF">*       get selected node</font>
+        call method tree1-&gt;get_selected_nodes
+               changing
+                  ct_selected_nodes = lt_selected_node.
+        call method cl_gui_cfw=&gt;flush.
+        read table lt_selected_node into l_selected_node index 1.
+<font color ="#0000FF">*       get current Line</font>
+        if not l_selected_node is initial.
+          call method tree1-&gt;get_outtab_line
+                  exporting
+                      i_node_key = l_selected_node
+                  importing
+                      e_outtab_line = ls_sflight.
+          ls_sflight-seatsmax = ls_sflight-price + 99.
+          ls_sflight-price = ls_sflight-seatsmax + '99.99'.
+          call method tree1-&gt;add_node
+            exporting
+              i_relat_node_key = l_selected_node
+              i_relationship   = cl_tree_control_base=&gt;relat_first_child
+              is_outtab_line   = ls_sflight
+<font color ="#0000FF">*             is_node_layout</font>
+<font color ="#0000FF">*             it_item_layout</font>
+              i_node_text      = 'First Child'.          "#EC NOTEXT
+<font color ="#0000FF">*           importing</font>
+<font color ="#0000FF">*             e_new_node_key</font>
+        else.
+          message i227(0h).
+        endif.
+      when 'INSERT_FS'.
+<font color ="#0000FF">*       get selected node</font>
+        call method tree1-&gt;get_selected_nodes
+               changing
+                  ct_selected_nodes = lt_selected_node.
+        call method cl_gui_cfw=&gt;flush.
+        read table lt_selected_node into l_selected_node index 1.
+<font color ="#0000FF">*       get current Line</font>
+        if not l_selected_node is initial.
+          call method tree1-&gt;get_outtab_line
+                  exporting
+                      i_node_key = l_selected_node
+                  importing
+                      e_outtab_line = ls_sflight.
+          ls_sflight-seatsmax = ls_sflight-price + 99.
+          ls_sflight-price = ls_sflight-seatsmax + '99.99'.
+          call method tree1-&gt;add_node
+            exporting
+              i_relat_node_key = l_selected_node
+              i_relationship   =
+                             cl_tree_control_base=&gt;relat_first_sibling
+              is_outtab_line   = ls_sflight
+<font color ="#0000FF">*             is_node_layout</font>
+<font color ="#0000FF">*             it_item_layout</font>
+              i_node_text      = 'First Sibling'.           "#EC NOTEXT
+<font color ="#0000FF">*           importing</font>
+<font color ="#0000FF">*             e_new_node_key</font>
+        else.
+          message i227(0h).
+        endif.
+      when 'INSERT_LS'.
+<font color ="#0000FF">*       get selected node</font>
+        call method tree1-&gt;get_selected_nodes
+               changing
+                  ct_selected_nodes = lt_selected_node.
+        call method cl_gui_cfw=&gt;flush.
+        read table lt_selected_node into l_selected_node index 1.
+<font color ="#0000FF">*       get current Line</font>
+        if not l_selected_node is initial.
+          call method tree1-&gt;get_outtab_line
+                  exporting
+                      i_node_key = l_selected_node
+                  importing
+                      e_outtab_line = ls_sflight.
+          ls_sflight-seatsmax = ls_sflight-price + 99.
+          ls_sflight-price = ls_sflight-seatsmax + '99.99'.
+          call method tree1-&gt;add_node
+            exporting
+              i_relat_node_key = l_selected_node
+              i_relationship   =
+                             cl_tree_control_base=&gt;relat_last_sibling
+              is_outtab_line   = ls_sflight
+<font color ="#0000FF">*             is_node_layout</font>
+<font color ="#0000FF">*             it_item_layout</font>
+              i_node_text      = 'Last Sibling'.            "#EC NOTEXT
+<font color ="#0000FF">*           importing</font>
+<font color ="#0000FF">*             e_new_node_key</font>
+        else.
+          message i227(0h).
+        endif.
+      when 'INSERT_NS'.
+<font color ="#0000FF">*       get selected node</font>
+        call method tree1-&gt;get_selected_nodes
+               changing
+                  ct_selected_nodes = lt_selected_node.
+        call method cl_gui_cfw=&gt;flush.
+        read table lt_selected_node into l_selected_node index 1.
+<font color ="#0000FF">*       get current Line</font>
+        if not l_selected_node is initial.
+          call method tree1-&gt;get_outtab_line
+                  exporting
+                      i_node_key = l_selected_node
+                  importing
+                      e_outtab_line = ls_sflight.
+          ls_sflight-seatsmax = ls_sflight-price + 99.
+          ls_sflight-price = ls_sflight-seatsmax + '99.99'.
+          call method tree1-&gt;add_node
+            exporting
+              i_relat_node_key = l_selected_node
+              i_relationship   =
+                             cl_tree_control_base=&gt;relat_next_sibling
+              is_outtab_line   = ls_sflight
+<font color ="#0000FF">*             is_node_layout</font>
+<font color ="#0000FF">*             it_item_layout</font>
+              i_node_text      = 'Next Sibling'.            "#EC NOTEXT
+<font color ="#0000FF">*           importing</font>
+<font color ="#0000FF">*             e_new_node_key</font>
+        else.
+          message i227(0h).
+        endif.
+
+    endcase.
+<font color ="#0000FF">*   update frontend</font>
+    call method tree1-&gt;frontend_update.
+  endmethod.
+
+  method on_toolbar_dropdown.
+<font color ="#0000FF">* create contextmenu</font>
+    data: l_menu type ref to cl_ctmenu,
+          l_fc_handled type as4flag.
+
+    create object l_menu.
+    clear l_fc_handled.
+
+    case fcode.
+      when 'INSERT_LC'.
+        l_fc_handled = 'X'.
+<font color ="#0000FF">*       insert as last child</font>
+        call method l_menu-&gt;add_function
+                exporting fcode   = 'INSERT_LC'
+                text    = 'Insert New Line as Last Child'.  "#EC NOTEXT
+<font color ="#0000FF">*       insert as first child</font>
+        call method l_menu-&gt;add_function
+                exporting fcode   = 'INSERT_FC'
+                text    = 'Insert New Line as First Child'. "#EC NOTEXT
+<font color ="#0000FF">*       insert as next sibling</font>
+        call method l_menu-&gt;add_function
+                exporting fcode   = 'INSERT_NS'
+                text    = 'Insert New Line as Next Sibling'. "#EC NOTEXT
+<font color ="#0000FF">*       insert as last sibling</font>
+        call method l_menu-&gt;add_function
+                exporting fcode   = 'INSERT_LS'
+                text    = 'Insert New Line as Last Sibling'. "#EC NOTEXT
+<font color ="#0000FF">*       insert as first sibling</font>
+        call method l_menu-&gt;add_function
+                exporting fcode   = 'INSERT_FS'
+              text    = 'Insert New Line as First Sibling'. "#EC NOTEXT
+    endcase.
+
+<font color ="#0000FF">* show dropdownbox</font>
+    if l_fc_handled = 'X'.
+      call method mr_toolbar-&gt;track_context_menu
+        exporting
+            context_menu = l_menu
+            posx         = posx
+            posy         = posy.
+    endif.
+
+  endmethod.
+endclass.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

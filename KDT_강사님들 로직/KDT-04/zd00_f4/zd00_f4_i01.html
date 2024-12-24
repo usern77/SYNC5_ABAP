@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_F4_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_F4_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_F4_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_F4_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+
+  CASE  ok_code.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+<font color ="#0000FF">*  	WHEN .</font>
+    WHEN OTHERS.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+
+  CASE  ok_code.
+    WHEN 'EXIT' OR 'CANCEL'.
+      LEAVE PROGRAM.
+<font color ="#0000FF">*  	WHEN .</font>
+    WHEN OTHERS.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  P1_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE p1_f4 INPUT.
+
+
+  DATA : lt_dynpfields TYPE TABLE OF  dynpread WITH HEADER LINE.
+
+  DATA : BEGIN OF ls_sdessert,
+           carrid TYPE sdessert-carrid,
+         END OF ls_sdessert.
+
+  DATA : lt_sdessert LIKE TABLE OF ls_sdessert.
+
+  DATA : lt_return_tab  TYPE TABLE OF ddshretval.
+
+<font color ="#0000FF">*- 조건으로 활용될 화면 요소의 값을 읽는다.</font>
+
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE lt_sdessert "보여주고자 하는 내용들 담은 인터널 테이블
+           FROM sdessert.
+
+  SORT lt_sdessert.
+  DELETE ADJACENT DUPLICATES FROM lt_sdessert.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'  " possible entry 생성해주는 FM (각 요소는 여러분들이 알기!)
+    EXPORTING
+      retfield    = 'CARRID'
+      dynpprog    = sy-repid
+      dynpnr      = sy-dynnr
+      dynprofield = 'GV_P1'
+      value_org   = 'S'
+    TABLES
+      value_tab   = lt_sdessert    " 서치헬프 값 가지고 있는 테이블
+      return_tab  = lt_return_tab. " 선택한 값
+
+  IF lt_return_tab IS INITIAL.
+    MESSAGE s006(bc405) WITH TEXT-s04.
+  ENDIF.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

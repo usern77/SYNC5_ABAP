@@ -1,0 +1,446 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZEXCEL_DATA_C00</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZEXCEL_DATA_C00</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Excel Data</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZEXCEL_DATA_C00</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zexcel_data_c00.
+
+TABLES: sscrfields.
+
+DATA: ok_code TYPE sy-ucomm.
+
+DATA: gs_layout TYPE lvc_s_layo.
+
+DATA: go_dock TYPE REF TO cl_gui_docking_container,
+      go_alv  TYPE REF TO cl_gui_alv_grid.
+
+FIELD-SYMBOLS: &lt;fs_itab&gt; TYPE STANDARD TABLE.
+
+SELECTION-SCREEN BEGIN OF BLOCK blk1 WITH FRAME.
+  PARAMETERS: pa_tabnm TYPE dd02l-tabname,
+              pa_fpath TYPE string.
+SELECTION-SCREEN END OF BLOCK blk1.
+
+SELECTION-SCREEN FUNCTION KEY 1.
+
+INITIALIZATION.
+  PERFORM set_button_text.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR pa_fpath.
+  PERFORM file_open_dialog.
+
+AT SELECTION-SCREEN ON pa_tabnm.
+  PERFORM check_table.
+
+AT SELECTION-SCREEN.
+  PERFORM user_command.
+
+START-OF-SELECTION.
+  PERFORM read_from_file.
+
+  IF &lt;fs_itab&gt; IS NOT INITIAL.
+    CALL SCREEN 100.
+  ELSE.
+    MESSAGE 'The data does not exist.!' TYPE 'W'.
+  ENDIF.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_table</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_table .
+  SELECT COUNT( * )
+    FROM dd02l
+    WHERE tabname = pa_tabnm
+      AND tabclass = 'TRANSP'.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE 'You entered an invalid table name.' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form FILE_OPEN_DIALOG</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM file_open_dialog .
+
+  DATA: lt_table TYPE filetable,
+        ls_table LIKE LINE OF lt_table.
+
+  DATA: lv_rc TYPE i.
+
+  CALL METHOD cl_gui_frontend_services=&gt;file_open_dialog
+    EXPORTING
+      window_title            = 'Selection file'                           " Title Of File Open Dialog
+      default_extension       = cl_gui_frontend_services=&gt;filetype_excel   " Default Extension
+<font color ="#0000FF">*     DEFAULT_FILENAME        =                  " Default File Name</font>
+      file_filter             = cl_gui_frontend_services=&gt;filetype_excel   " File Extension Filter String
+    CHANGING
+      file_table              = lt_table                                   " Table Holding Selected Files
+      rc                      = lv_rc                                       " Return Code, Number of Files or -1 If Error Occurred
+    EXCEPTIONS
+      file_open_dialog_failed = 1                " "Open File" dialog failed
+      cntl_error              = 2                " Control error
+      error_no_gui            = 3                " No GUI available
+      not_supported_by_gui    = 4                " GUI does not support this
+      OTHERS                  = 5.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*     WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+  READ TABLE lt_table INTO ls_table INDEX 1.
+  pa_fpath = ls_table-filename.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_BUTTON_TEXT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_button_text .
+
+  sscrfields-functxt_01 = icon_xls && 'Excel 양식 다운로드'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form USER_COMMAND</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command .
+
+  CASE sscrfields-ucomm.
+    WHEN 'FC01'.
+      PERFORM file_down.
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form file_down</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM file_down .
+
+  DATA: lv_col TYPE i,
+        lv_len TYPE i.
+
+  DATA: BEGIN OF ls_field,
+          fieldname TYPE dd03l-fieldname,
+          position  TYPE dd03l-position,
+          intlen    TYPE dd03l-intlen,
+        END OF ls_field.
+
+  DATA: lt_fields LIKE TABLE OF ls_field.
+
+<font color ="#0000FF">*       Excel object</font>
+  DATA: go_excel  TYPE ole2_object,
+<font color ="#0000FF">*       Work books</font>
+        go_books  TYPE ole2_object,
+<font color ="#0000FF">*       Work Book</font>
+        go_book   TYPE ole2_object,
+<font color ="#0000FF">*       cell</font>
+        go_cell   TYPE ole2_object,
+<font color ="#0000FF">*       Font</font>
+        go_font   TYPE ole2_object,
+        go_column TYPE ole2_object.
+
+<font color ="#0000FF">* start Excel(OLE OBJECT 생성 & 실행)</font>
+  CREATE OBJECT go_excel 'EXCEL.APPLICATION'.
+  PERFORM error_handle USING sy-subrc.
+<font color ="#0000FF">*  화면 DISPLAY 설정 (1을 설정하면 DISPLAY)</font>
+  SET PROPERTY OF go_excel  'Visible' = 1.
+  PERFORM error_handle USING sy-subrc.
+
+<font color ="#0000FF">* get list of workbooks, initially empty( WORKBOOK 및 WORKBOOK 설정 & OPEN )</font>
+  CALL METHOD OF go_excel 'Workbooks' = go_books.
+  PERFORM error_handle USING sy-subrc.
+
+<font color ="#0000FF">* add a new workbook</font>
+  CALL METHOD OF go_books 'Add' = go_book.
+  PERFORM error_handle USING sy-subrc.
+
+
+<font color ="#0000FF">* get table field name</font>
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE lt_fields
+    FROM dd03l
+    WHERE tabname = pa_tabnm.
+
+  SORT lt_fields BY position.
+
+<font color ="#0000FF">* output column headings to active Excel sheet</font>
+  LOOP AT lt_fields INTO ls_field.
+    lv_col = ls_field-position.
+    lv_len = ls_field-intlen.
+
+<font color ="#0000FF">*   Excel Cell 행/열</font>
+    CALL METHOD OF go_excel 'Cells' = go_cell
+     EXPORTING
+       #1 = 1         "행.
+       #2 = lv_col.   "열.
+
+<font color ="#0000FF">*   Excel 행/열에 데이터 처리.</font>
+    SET PROPERTY OF go_cell 'Value' = ls_field-fieldname.
+    PERFORM error_handle USING sy-subrc.
+
+<font color ="#0000FF">*   Excel Colomn</font>
+    CALL METHOD OF go_excel 'Columns' = go_column
+      EXPORTING
+        #1 = lv_col.
+
+<font color ="#0000FF">*   Excel column 길이 최적화</font>
+    CALL METHOD OF go_column 'Autofit'.
+
+    PERFORM error_handle USING sy-subrc.
+  ENDLOOP.
+
+  CALL METHOD OF go_excel 'QUIT'.
+<font color ="#0000FF">* release resources 반드시 FREE 해줄것!</font>
+  FREE OBJECT go_column.
+  FREE OBJECT go_cell.
+  FREE OBJECT go_books.
+  FREE OBJECT go_excel.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form ERROR_HANDLE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; SY_SUBRC</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM error_handle  USING    pv_subrc TYPE sy-subrc.
+  IF pv_subrc &lt;&gt; 0.
+    MESSAGE 'OLE 자동화 에러' TYPE 'W'.
+    STOP.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form READ_FROM_FILE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM read_from_file .
+
+  DATA: lv_filename TYPE rlgrap-filename,
+        lv_col      TYPE i.
+
+  DATA: lt_intern TYPE TABLE OF alsmex_tabline,
+        ls_intern LIKE LINE OF lt_intern.
+
+  DATA: lt_ref TYPE REF TO data,
+        ls_ref TYPE REF TO data.
+
+  FIELD-SYMBOLS: &lt;fs_comp&gt; TYPE any,
+                 &lt;fs_stru&gt; TYPE any.
+
+  CREATE DATA lt_ref TYPE TABLE OF (pa_tabnm).
+  CREATE DATA ls_ref TYPE (pa_tabnm).
+
+  ASSIGN lt_ref-&gt;* TO &lt;fs_itab&gt;.
+  ASSIGN ls_ref-&gt;* TO &lt;fs_stru&gt;.
+
+  SELECT COUNT( * ) INTO lv_col
+    FROM dd03l
+    WHERE tabname = pa_tabnm.
+
+  lv_filename = pa_fpath.
+
+  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'
+    EXPORTING
+      filename                = lv_filename
+      i_begin_col             = 1
+      i_begin_row             = 2
+      i_end_col               = lv_col
+      i_end_row               = 65000
+    TABLES
+      intern                  = lt_intern
+    EXCEPTIONS
+      inconsistent_parameters = 1
+      upload_ole              = 2
+      OTHERS                  = 3.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+  ENDIF.
+
+<font color ="#0000FF">* 엑셀 데이터 넣기</font>
+  LOOP AT lt_intern INTO ls_intern.
+    ASSIGN COMPONENT ls_intern-col OF STRUCTURE &lt;fs_stru&gt; TO &lt;fs_comp&gt;.
+    &lt;fs_comp&gt; = ls_intern-value.
+    AT END OF row.
+      APPEND &lt;fs_stru&gt; TO &lt;fs_itab&gt;.
+      CLEAR: &lt;fs_stru&gt;.
+    ENDAT.
+
+    CLEAR: ls_intern.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+  SET TITLEBAR 'T100' WITH pa_tabnm.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE clear_ok_code OUTPUT.
+  CLEAR: ok_code.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+  CASE ok_code.
+    WHEN 'BACK' OR 'CANC'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'SAVE'.
+<font color ="#0000FF">*     DB Table 데이터 저장 처리.</font>
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE init_alv OUTPUT.
+  IF go_dock IS INITIAL.
+
+    CREATE OBJECT go_dock
+      EXPORTING
+        repid                       = sy-repid
+        dynnr                       = sy-dynnr
+        side                        = cl_gui_docking_container=&gt;dock_at_top
+        extension                   = 1500
+      EXCEPTIONS
+        cntl_error                  = 1
+        cntl_system_error           = 2
+        create_error                = 3
+        lifetime_error              = 4
+        lifetime_dynpro_dynpro_link = 5
+        OTHERS                      = 6.
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT go_alv
+      EXPORTING
+        i_parent          = go_dock
+      EXCEPTIONS
+        error_cntl_create = 1
+        error_cntl_init   = 2
+        error_cntl_link   = 3
+        error_dp_create   = 4
+        OTHERS            = 5.
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                 WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    ENDIF.
+
+    PERFORM set_layout.
+
+    CALL METHOD go_alv-&gt;set_table_for_first_display
+      EXPORTING
+        i_structure_name              = pa_tabnm
+        is_layout                     = gs_layout
+      CHANGING
+        it_outtab                     = &lt;fs_itab&gt;
+      EXCEPTIONS
+        invalid_parameter_combination = 1
+        program_error                 = 2
+        too_many_lines                = 3
+        OTHERS                        = 4.
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+    ENDIF.
+
+
+
+
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+  DATA: lv_cnt TYPE i.
+
+  lv_cnt = lines( &lt;fs_itab&gt; ).
+
+  gs_layout-zebra = 'X'.
+  gs_layout-cwidth_opt = 'X'.
+  gs_layout-grid_title = |Record Counter : | && lv_cnt.
+
+ENDFORM.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; Selected Table Name ( &1 )</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_FPATH         File Path</font>
+<font color ="#0000FF">* PA_TABNM D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   The data does not exist.!</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

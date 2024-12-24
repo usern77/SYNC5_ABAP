@@ -1,0 +1,565 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_TREE_DEMO</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_TREE_DEMO</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Demo for ALV tree control</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report  ZALV_TREE_DEMO                                          *</font>
+<font color ="#0000FF">*&                                                                     *</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&                                                                     *</font>
+<font color ="#0000FF">*&                                                                     *</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+REPORT  ZALV_TREE_DEMO.
+
+CLASS CL_GUI_COLUMN_TREE DEFINITION LOAD.
+CLASS CL_GUI_CFW DEFINITION LOAD.
+
+DATA TREE1  TYPE REF TO CL_GUI_ALV_TREE.
+DATA MR_TOOLBAR TYPE REF TO CL_GUI_TOOLBAR.
+
+
+include <a href ="zalv_toolbar_event_receiver.html">ZALV_TOOLBAR_EVENT_RECEIVER</a>.
+include <a href ="zalv_tree_event_receiver.html">ZALV_TREE_EVENT_RECEIVER</a>.
+
+<font color ="#0000FF">*TYPE-POOLS: icon.</font>
+
+DATA: TOOLBAR_EVENT_RECEIVER TYPE REF TO LCL_TOOLBAR_EVENT_RECEIVER.
+
+DATA: GT_SFLIGHT      TYPE SFLIGHT OCCURS 0,      "Output-Table
+      GT_FIELDCATALOG TYPE LVC_T_FCAT, "Fieldcatalog
+      OK_CODE         LIKE SY-UCOMM.           "OK-Code
+
+START-OF-SELECTION.
+
+END-OF-SELECTION.
+
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  PBO  OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       process before output</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE PBO OUTPUT.
+
+  SET PF-STATUS 'MAIN100'.
+  IF TREE1 IS INITIAL.
+    PERFORM INIT_TREE.
+  ENDIF.
+  CALL METHOD CL_GUI_CFW=&gt;FLUSH.
+ENDMODULE.                             " PBO  OUTPUT
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  PAI  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       process after input</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE PAI INPUT.
+
+  CASE OK_CODE.
+    WHEN 'EXIT' OR 'BACK' OR 'CANC'.
+      PERFORM EXIT_PROGRAM.
+
+    WHEN OTHERS.
+      CALL METHOD CL_GUI_CFW=&gt;DISPATCH.
+  ENDCASE.
+  CLEAR OK_CODE.
+  CALL METHOD CL_GUI_CFW=&gt;FLUSH.
+
+ENDMODULE.                             " PAI  INPUT
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  build_fieldcatalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       build fieldcatalog for structure sflight</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM BUILD_FIELDCATALOG.
+
+<font color ="#0000FF">* get fieldcatalog</font>
+  CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
+    EXPORTING
+      I_STRUCTURE_NAME = 'SFLIGHT'
+    CHANGING
+      CT_FIELDCAT      = GT_FIELDCATALOG.
+
+  SORT GT_FIELDCATALOG BY SCRTEXT_L.
+
+<font color ="#0000FF">* change fieldcatalog</font>
+  DATA: LS_FIELDCATALOG TYPE LVC_S_FCAT.
+  LOOP AT GT_FIELDCATALOG INTO LS_FIELDCATALOG.
+    CASE LS_FIELDCATALOG-FIELDNAME.
+      WHEN 'CARRID' OR 'CONNID' OR 'FLDATE'.
+        LS_FIELDCATALOG-NO_OUT = 'X'.
+        LS_FIELDCATALOG-KEY    = ''.
+      WHEN 'PRICE' OR 'SEATSOCC' OR 'SEATSMAX' OR 'PAYMENTSUM'.
+        LS_FIELDCATALOG-DO_SUM = 'X'.
+    ENDCASE.
+    MODIFY GT_FIELDCATALOG FROM LS_FIELDCATALOG.
+  ENDLOOP.
+ENDFORM.                               " build_fieldcatalog
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  build_hierarchy_header</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       build hierarchy-header-information</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      --&gt;P_L_HIERARCHY_HEADER  strucxture for hierarchy-header</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM BUILD_HIERARCHY_HEADER CHANGING
+                               P_HIERARCHY_HEADER TYPE TREEV_HHDR.
+
+  P_HIERARCHY_HEADER-HEADING = 'Hierarchy Header'.          "#EC NOTEXT
+  P_HIERARCHY_HEADER-TOOLTIP =
+                         'This is the Hierarchy Header !'.  "#EC NOTEXT
+  P_HIERARCHY_HEADER-WIDTH = 30.
+  P_HIERARCHY_HEADER-WIDTH_PIX = ''.
+
+ENDFORM.                               " build_hierarchy_header
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  exit_program</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       free object and leave program</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM EXIT_PROGRAM.
+
+  CALL METHOD TREE1-&gt;FREE.
+  LEAVE PROGRAM.
+
+ENDFORM.                               " exit_program
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  build_header</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       build table for html_header</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM BUILD_COMMENT USING
+      PT_LIST_COMMENTARY TYPE SLIS_T_LISTHEADER
+      P_LOGO             TYPE SDYDO_VALUE.
+
+  DATA: LS_LINE TYPE SLIS_LISTHEADER.
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* LIST HEADING LINE: TYPE H</font>
+  CLEAR LS_LINE.
+  LS_LINE-TYP  = 'H'.
+<font color ="#0000FF">* LS_LINE-KEY:  NOT USED FOR THIS TYPE</font>
+  LS_LINE-INFO = 'ALV-tree-demo: flight-overview'.          "#EC NOTEXT
+  APPEND LS_LINE TO PT_LIST_COMMENTARY.
+<font color ="#0000FF">* STATUS LINE: TYPE S</font>
+  CLEAR LS_LINE.
+  LS_LINE-TYP  = 'S'.
+  LS_LINE-KEY  = 'valid until'.                             "#EC NOTEXT
+  LS_LINE-INFO = 'January 29 1999'.                         "#EC NOTEXT
+  APPEND LS_LINE TO PT_LIST_COMMENTARY.
+  LS_LINE-KEY  = 'time'.
+  LS_LINE-INFO = '2.00 pm'.                                 "#EC NOTEXT
+  APPEND LS_LINE TO PT_LIST_COMMENTARY.
+<font color ="#0000FF">* ACTION LINE: TYPE A</font>
+  CLEAR LS_LINE.
+  LS_LINE-TYP  = 'A'.
+<font color ="#0000FF">* LS_LINE-KEY:  NOT USED FOR THIS TYPE</font>
+  LS_LINE-INFO = 'actual data'.                             "#EC NOTEXT
+  APPEND LS_LINE TO PT_LIST_COMMENTARY.
+
+  P_LOGO = 'ENJOYSAP_LOGO'.
+ENDFORM.                    "build_comment
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  create_hierarchy</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM CREATE_HIERARCHY.
+
+  DATA: LS_SFLIGHT TYPE SFLIGHT,
+        LT_SFLIGHT TYPE SFLIGHT OCCURS 0.
+
+<font color ="#0000FF">* get data</font>
+  SELECT * FROM SFLIGHT INTO TABLE LT_SFLIGHT
+                        UP TO 200 ROWS .                "#EC CI_NOWHERE
+
+  SORT LT_SFLIGHT BY CARRID CONNID FLDATE.
+
+<font color ="#0000FF">* add data to tree</font>
+  DATA: L_CARRID_KEY TYPE LVC_NKEY,
+        L_CONNID_KEY TYPE LVC_NKEY,
+        L_LAST_KEY   TYPE LVC_NKEY.
+  LOOP AT LT_SFLIGHT INTO LS_SFLIGHT.
+    ON CHANGE OF LS_SFLIGHT-CARRID.
+      PERFORM ADD_CARRID_LINE USING    LS_SFLIGHT
+                                       ''
+                              CHANGING L_CARRID_KEY.
+    ENDON.
+    ON CHANGE OF LS_SFLIGHT-CONNID.
+      PERFORM ADD_CONNID_LINE USING    LS_SFLIGHT
+                                       L_CARRID_KEY
+                              CHANGING L_CONNID_KEY.
+
+    ENDON.
+    PERFORM ADD_COMPLETE_LINE USING  LS_SFLIGHT
+                                     L_CONNID_KEY
+                            CHANGING L_LAST_KEY.
+  ENDLOOP.
+
+<font color ="#0000FF">* calculate totals</font>
+  CALL METHOD TREE1-&gt;UPDATE_CALCULATIONS.
+
+<font color ="#0000FF">* this method must be called to send the data to the frontend</font>
+  CALL METHOD TREE1-&gt;FRONTEND_UPDATE.
+
+ENDFORM.                               " create_hierarchy
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  add_carrid_line</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       add hierarchy-level 1 to tree</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      --&gt;P_LS_SFLIGHT  sflight</font>
+<font color ="#0000FF">*      --&gt;P_RELEATKEY   relatkey</font>
+<font color ="#0000FF">*     &lt;--&gt;p_node_key    new node-key</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM ADD_CARRID_LINE USING     PS_SFLIGHT TYPE SFLIGHT
+                               P_RELAT_KEY TYPE LVC_NKEY
+                     CHANGING  P_NODE_KEY TYPE LVC_NKEY.
+
+  DATA: L_NODE_TEXT TYPE LVC_VALUE,
+        LS_SFLIGHT  TYPE SFLIGHT.
+
+<font color ="#0000FF">* set item-layout</font>
+  DATA: LT_ITEM_LAYOUT TYPE LVC_T_LAYI,
+        LS_ITEM_LAYOUT TYPE LVC_S_LAYI.
+  LS_ITEM_LAYOUT-T_IMAGE = '@3P@'.
+  LS_ITEM_LAYOUT-FIELDNAME = TREE1-&gt;C_HIERARCHY_COLUMN_NAME.
+  LS_ITEM_LAYOUT-STYLE   = CL_GUI_COLUMN_TREE=&gt;STYLE_INTENSIFD_CRITICAL.
+  APPEND LS_ITEM_LAYOUT TO LT_ITEM_LAYOUT.
+
+<font color ="#0000FF">* add node</font>
+  L_NODE_TEXT =  PS_SFLIGHT-CARRID.
+
+  DATA: LS_NODE TYPE LVC_S_LAYN.
+  LS_NODE-N_IMAGE   = SPACE.
+  LS_NODE-EXP_IMAGE = SPACE.
+
+  CALL METHOD TREE1-&gt;ADD_NODE
+    EXPORTING
+      I_RELAT_NODE_KEY = P_RELAT_KEY
+      I_RELATIONSHIP   = CL_GUI_COLUMN_TREE=&gt;RELAT_LAST_CHILD
+      I_NODE_TEXT      = L_NODE_TEXT
+      IS_OUTTAB_LINE   = LS_SFLIGHT
+      IS_NODE_LAYOUT   = LS_NODE
+      IT_ITEM_LAYOUT   = LT_ITEM_LAYOUT
+    IMPORTING
+      E_NEW_NODE_KEY   = P_NODE_KEY.
+
+ENDFORM.                               " add_carrid_line
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  add_connid_line</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       add hierarchy-level 2 to tree</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      --&gt;P_LS_SFLIGHT  sflight</font>
+<font color ="#0000FF">*      --&gt;P_RELEATKEY   relatkey</font>
+<font color ="#0000FF">*     &lt;--&gt;p_node_key    new node-key</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM ADD_CONNID_LINE USING     PS_SFLIGHT TYPE SFLIGHT
+                               P_RELAT_KEY TYPE LVC_NKEY
+                     CHANGING  P_NODE_KEY TYPE LVC_NKEY.
+
+  DATA: L_NODE_TEXT TYPE LVC_VALUE,
+        LS_SFLIGHT  TYPE SFLIGHT.
+
+<font color ="#0000FF">* set item-layout</font>
+  DATA: LT_ITEM_LAYOUT TYPE LVC_T_LAYI,
+        LS_ITEM_LAYOUT TYPE LVC_S_LAYI.
+  LS_ITEM_LAYOUT-T_IMAGE = '@3Y@'.
+  LS_ITEM_LAYOUT-STYLE   =
+                        CL_GUI_COLUMN_TREE=&gt;STYLE_INTENSIFIED.
+  LS_ITEM_LAYOUT-FIELDNAME = TREE1-&gt;C_HIERARCHY_COLUMN_NAME.
+  APPEND LS_ITEM_LAYOUT TO LT_ITEM_LAYOUT.
+
+<font color ="#0000FF">* add node</font>
+  L_NODE_TEXT =  PS_SFLIGHT-CONNID.
+  DATA: RELAT TYPE INT4.
+  RELAT = CL_GUI_COLUMN_TREE=&gt;RELAT_LAST_CHILD.
+  CALL METHOD TREE1-&gt;ADD_NODE
+    EXPORTING
+      I_RELAT_NODE_KEY = P_RELAT_KEY
+      I_RELATIONSHIP   = RELAT
+      I_NODE_TEXT      = L_NODE_TEXT
+      IS_OUTTAB_LINE   = LS_SFLIGHT
+      IT_ITEM_LAYOUT   = LT_ITEM_LAYOUT
+    IMPORTING
+      E_NEW_NODE_KEY   = P_NODE_KEY.
+
+ENDFORM.                               " add_connid_line
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  add_cmplete_line</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       add hierarchy-level 3 to tree</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      --&gt;P_LS_SFLIGHT  sflight</font>
+<font color ="#0000FF">*      --&gt;P_RELEATKEY   relatkey</font>
+<font color ="#0000FF">*     &lt;--&gt;p_node_key    new node-key</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM ADD_COMPLETE_LINE USING   PS_SFLIGHT TYPE SFLIGHT
+                               P_RELAT_KEY TYPE LVC_NKEY
+                     CHANGING  P_NODE_KEY TYPE LVC_NKEY.
+
+  DATA: L_NODE_TEXT TYPE LVC_VALUE.
+
+<font color ="#0000FF">* set item-layout</font>
+  DATA: LT_ITEM_LAYOUT TYPE LVC_T_LAYI,
+        LS_ITEM_LAYOUT TYPE LVC_S_LAYI.
+  LS_ITEM_LAYOUT-FIELDNAME = TREE1-&gt;C_HIERARCHY_COLUMN_NAME.
+  LS_ITEM_LAYOUT-CLASS   = CL_GUI_COLUMN_TREE=&gt;ITEM_CLASS_CHECKBOX.
+  LS_ITEM_LAYOUT-EDITABLE = 'X'.
+  APPEND LS_ITEM_LAYOUT TO LT_ITEM_LAYOUT.
+
+  CLEAR LS_ITEM_LAYOUT.
+  LS_ITEM_LAYOUT-FIELDNAME = 'PLANETYPE'.
+  LS_ITEM_LAYOUT-ALIGNMENT = CL_GUI_COLUMN_TREE=&gt;ALIGN_RIGHT.
+  APPEND LS_ITEM_LAYOUT TO LT_ITEM_LAYOUT.
+
+  L_NODE_TEXT =  PS_SFLIGHT-FLDATE.
+
+  DATA: LS_NODE TYPE LVC_S_LAYN.
+  LS_NODE-N_IMAGE   = SPACE.
+  LS_NODE-EXP_IMAGE = SPACE.
+
+  CALL METHOD TREE1-&gt;ADD_NODE
+    EXPORTING
+      I_RELAT_NODE_KEY = P_RELAT_KEY
+      I_RELATIONSHIP   = CL_GUI_COLUMN_TREE=&gt;RELAT_LAST_CHILD
+      IS_OUTTAB_LINE   = PS_SFLIGHT
+      I_NODE_TEXT      = L_NODE_TEXT
+      IS_NODE_LAYOUT   = LS_NODE
+      IT_ITEM_LAYOUT   = LT_ITEM_LAYOUT
+    IMPORTING
+      E_NEW_NODE_KEY   = P_NODE_KEY.
+ENDFORM.                               " add_complete_line
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  register_events</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM REGISTER_EVENTS.
+<font color ="#0000FF">* define the events which will be passed to the backend</font>
+  DATA: LT_EVENTS TYPE CNTL_SIMPLE_EVENTS,
+        L_EVENT   TYPE CNTL_SIMPLE_EVENT.
+
+<font color ="#0000FF">* define the events which will be passed to the backend</font>
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_EXPAND_NO_CHILDREN.
+  APPEND L_EVENT TO LT_EVENTS.
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_CHECKBOX_CHANGE.
+  APPEND L_EVENT TO LT_EVENTS.
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_HEADER_CONTEXT_MEN_REQ.
+  APPEND L_EVENT TO LT_EVENTS.
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_NODE_CONTEXT_MENU_REQ.
+  APPEND L_EVENT TO LT_EVENTS.
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_ITEM_CONTEXT_MENU_REQ.
+  APPEND L_EVENT TO LT_EVENTS.
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_HEADER_CLICK.
+  APPEND L_EVENT TO LT_EVENTS.
+  L_EVENT-EVENTID = CL_GUI_COLUMN_TREE=&gt;EVENTID_ITEM_KEYPRESS.
+  APPEND L_EVENT TO LT_EVENTS.
+
+  CALL METHOD TREE1-&gt;SET_REGISTERED_EVENTS
+    EXPORTING
+      EVENTS                    = LT_EVENTS
+    EXCEPTIONS
+      CNTL_ERROR                = 1
+      CNTL_SYSTEM_ERROR         = 2
+      ILLEGAL_EVENT_COMBINATION = 3.
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE X208(00) WITH 'ERROR'.                          "#EC NOTEXT
+  ENDIF.
+
+
+
+<font color ="#0000FF">* set Handler</font>
+  DATA: L_EVENT_RECEIVER TYPE REF TO LCL_TREE_EVENT_RECEIVER.
+  CREATE OBJECT L_EVENT_RECEIVER.
+  SET HANDLER L_EVENT_RECEIVER-&gt;HANDLE_NODE_CTMENU_REQUEST
+                                                        FOR TREE1.
+  SET HANDLER L_EVENT_RECEIVER-&gt;HANDLE_NODE_CTMENU_SELECTED
+                                                        FOR TREE1.
+  SET HANDLER L_EVENT_RECEIVER-&gt;HANDLE_ITEM_CTMENU_REQUEST
+                                                        FOR TREE1.
+  SET HANDLER L_EVENT_RECEIVER-&gt;HANDLE_ITEM_CTMENU_SELECTED
+                                                        FOR TREE1.
+ENDFORM.                               " register_events
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  change_toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM CHANGE_TOOLBAR.
+
+<font color ="#0000FF">* get toolbar control</font>
+  CALL METHOD TREE1-&gt;GET_TOOLBAR_OBJECT
+    IMPORTING
+      ER_TOOLBAR = MR_TOOLBAR.
+
+  CHECK NOT MR_TOOLBAR IS INITIAL.
+
+<font color ="#0000FF">* add seperator to toolbar</font>
+  CALL METHOD MR_TOOLBAR-&gt;ADD_BUTTON
+    EXPORTING
+      FCODE     = ''
+      ICON      = ''
+      BUTN_TYPE = CNTB_BTYPE_SEP
+      TEXT      = ''
+      QUICKINFO = 'This is a Seperator'.                    "#EC NOTEXT
+
+<font color ="#0000FF">* add Standard Button to toolbar (for Delete Subtree)</font>
+  CALL METHOD MR_TOOLBAR-&gt;ADD_BUTTON
+    EXPORTING
+      FCODE     = 'DELETE'
+      ICON      = '@18@'
+      BUTN_TYPE = CNTB_BTYPE_BUTTON
+      TEXT      = ''
+      QUICKINFO = 'Delete subtree'.                         "#EC NOTEXT
+
+<font color ="#0000FF">* add Dropdown Button to toolbar (for Insert Line)</font>
+  CALL METHOD MR_TOOLBAR-&gt;ADD_BUTTON
+    EXPORTING
+      FCODE     = 'INSERT_LC'
+      ICON      = '@17@'
+      BUTN_TYPE = CNTB_BTYPE_DROPDOWN
+      TEXT      = ''
+      QUICKINFO = 'Insert Line'.                            "#EC NOTEXT
+
+<font color ="#0000FF">* set event-handler for toolbar-control</font>
+  CREATE OBJECT TOOLBAR_EVENT_RECEIVER.
+  SET HANDLER TOOLBAR_EVENT_RECEIVER-&gt;ON_FUNCTION_SELECTED
+                                                      FOR MR_TOOLBAR.
+  SET HANDLER TOOLBAR_EVENT_RECEIVER-&gt;ON_TOOLBAR_DROPDOWN
+                                                      FOR MR_TOOLBAR.
+
+ENDFORM.                               " change_toolbar
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  init_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM INIT_TREE.
+
+<font color ="#0000FF">* create fieldcatalog for structure sflight</font>
+  PERFORM BUILD_FIELDCATALOG.
+
+<font color ="#0000FF">* create container for alv-tree</font>
+  DATA: L_TREE_CONTAINER_NAME(30) TYPE C,
+        L_CUSTOM_CONTAINER        TYPE REF TO CL_GUI_CUSTOM_CONTAINER.
+  L_TREE_CONTAINER_NAME = 'TREE1'.
+
+  IF SY-BATCH IS INITIAL.
+    CREATE OBJECT L_CUSTOM_CONTAINER
+      EXPORTING
+        CONTAINER_NAME              = L_TREE_CONTAINER_NAME
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE X208(00) WITH 'ERROR'.                        "#EC NOTEXT
+    ENDIF.
+  ENDIF.
+
+<font color ="#0000FF">* create tree control</font>
+  CREATE OBJECT TREE1
+    EXPORTING
+      PARENT                      = L_CUSTOM_CONTAINER
+      NODE_SELECTION_MODE         = CL_GUI_COLUMN_TREE=&gt;NODE_SEL_MODE_MULTIPLE
+      ITEM_SELECTION              = ABAP_TRUE    "YI3K118558
+      NO_HTML_HEADER              = ''
+      NO_TOOLBAR                  = ''
+    EXCEPTIONS
+      CNTL_ERROR                  = 1
+      CNTL_SYSTEM_ERROR           = 2
+      CREATE_ERROR                = 3
+      LIFETIME_ERROR              = 4
+      ILLEGAL_NODE_SELECTION_MODE = 5
+      FAILED                      = 6
+      ILLEGAL_COLUMN_NAME         = 7.
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE X208(00) WITH 'ERROR'.                          "#EC NOTEXT
+  ENDIF.
+
+<font color ="#0000FF">* create Hierarchy-header</font>
+  DATA L_HIERARCHY_HEADER TYPE TREEV_HHDR.
+  PERFORM BUILD_HIERARCHY_HEADER CHANGING L_HIERARCHY_HEADER.
+
+<font color ="#0000FF">* create info-table for html-header</font>
+  DATA: LT_LIST_COMMENTARY TYPE SLIS_T_LISTHEADER,
+        L_LOGO             TYPE SDYDO_VALUE.
+  PERFORM BUILD_COMMENT USING
+                 LT_LIST_COMMENTARY
+                 L_LOGO.
+
+<font color ="#0000FF">* repid for saving variants</font>
+  DATA: LS_VARIANT TYPE DISVARIANT.
+  LS_VARIANT-REPORT = SY-REPID.
+
+<font color ="#0000FF">* create emty tree-control</font>
+  CALL METHOD TREE1-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      IS_HIERARCHY_HEADER = L_HIERARCHY_HEADER
+      IT_LIST_COMMENTARY  = LT_LIST_COMMENTARY
+      I_LOGO              = L_LOGO
+      I_BACKGROUND_ID     = 'ALV_BACKGROUND'
+      I_SAVE              = 'A'
+      IS_VARIANT          = LS_VARIANT
+    CHANGING
+      IT_OUTTAB           = GT_SFLIGHT "table must be emty !!
+      IT_FIELDCATALOG     = GT_FIELDCATALOG.
+
+<font color ="#0000FF">* create hierarchy</font>
+  PERFORM CREATE_HIERARCHY.
+
+<font color ="#0000FF">* add own functioncodes to the toolbar</font>
+  PERFORM CHANGE_TOOLBAR.
+
+<font color ="#0000FF">* register events</font>
+  PERFORM REGISTER_EVENTS.                                  "YI3K118558
+
+<font color ="#0000FF">* adjust column_width</font>
+<font color ="#0000FF">* call method tree1-&gt;COLUMN_OPTIMIZE.</font>
+
+ENDFORM.                    " init_tree
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 00</font>
+<font color ="#0000FF">*208   &</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 0H</font>
+<font color ="#0000FF">*000   & & & &</font>
+<font color ="#0000FF">*227   Select exactly one node.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

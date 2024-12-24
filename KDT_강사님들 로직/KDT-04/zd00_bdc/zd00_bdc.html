@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_BDC</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_BDC</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [D00] SHDB를 활용한 BDC 레코드 실행</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZD00_BDC</font>
+<font color ="#0000FF">*& 관련 T-code : SHDB</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zd00_bdc NO STANDARD PAGE HEADING LINE-SIZE 255.
+
+DATA : bdcdata LIKE bdcdata    OCCURS 0 WITH HEADER LINE.
+DATA : messtab LIKE bdcmsgcoll OCCURS 0 WITH HEADER LINE. "BDC관련 메세지
+
+DATA : gv_mstring(480).
+DATA : gv_subrc TYPE sy-subrc.
+
+START-OF-SELECTION.
+
+  " 1. BDC 대상 화면 설정
+  PERFORM bdc_dynpro      USING 'SAPMZD00_CREATE_CUSTOM' '0100'.
+
+  " 2. 해당하는 화면에 채워야 할 입력 필드 셋팅  (두번째 인자에는 변수, 현재는 샘플 데이터 하드코딩 상태)
+  PERFORM bdc_field  USING 'BDC_CURSOR'         'SCUSTOM-LANGU'.
+  PERFORM bdc_field  USING 'BDC_OKCODE'         '=SAVE'.
+  PERFORM bdc_field  USING 'SCUSTOM-NAME'       '손흥민'.
+  PERFORM bdc_field  USING 'SCUSTOM-FORM'       'MR.'.
+  PERFORM bdc_field  USING 'SCUSTOM-STREET'     '관철로'.
+  PERFORM bdc_field  USING 'SCUSTOM-POSTBOX'    '12345'.
+  PERFORM bdc_field  USING 'SCUSTOM-POSTCODE'   '12345'.
+  PERFORM bdc_field  USING 'SCUSTOM-CITY'       '서울'.
+  PERFORM bdc_field  USING 'SCUSTOM-COUNTRY'    'KO'.
+  PERFORM bdc_field  USING 'SCUSTOM-TELEPHONE'  '010-999-9999'.
+  PERFORM bdc_field  USING 'SCUSTOM-EMAIL'      'sonny@naver.com'.
+  PERFORM bdc_field  USING 'SCUSTOM-CUSTTYPE'   'P'.
+  PERFORM bdc_field  USING 'SCUSTOM-DISCOUNT'   '20'.
+  PERFORM bdc_field  USING 'SCUSTOM-LANGU'      'KO'.
+
+  " 3. 화면 셋팅 후 해당하는 프로그램 호출 (관련 메세지도 받음)
+  REFRESH messtab.
+  CALL TRANSACTION 'ZCUSTOM' USING bdcdata
+                   MODE   'N'    "F1확인해보자
+                   MESSAGES INTO messtab.
+
+  " 메세지처리
+  IF gv_subrc &lt;&gt; 99.
+    LOOP AT messtab.
+      MESSAGE ID     messtab-msgid
+              TYPE   messtab-msgtyp
+              NUMBER messtab-msgnr
+              INTO   gv_mstring
+              WITH   messtab-msgv1
+                     messtab-msgv2
+                     messtab-msgv3
+                     messtab-msgv4.
+      WRITE: / messtab-msgtyp, gv_mstring(250).
+    ENDLOOP.
+  ENDIF.
+
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*        Start new screen                                              *</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM bdc_dynpro USING program
+                      dynpro.
+
+  CLEAR bdcdata.
+  bdcdata-program  = program.
+  bdcdata-dynpro   = dynpro.
+  bdcdata-dynbegin = 'X'.
+  APPEND bdcdata.
+
+ENDFORM.
+
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*        Insert field                                                  *</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM bdc_field USING fnam
+                     fval.
+
+  CLEAR bdcdata.
+  bdcdata-fnam = fnam.
+  bdcdata-fval = fval.
+  APPEND bdcdata.
+
+ENDFORM.
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 040 Program already exists</font>
+<font color ="#0000FF">* 041 Report name is not valid</font>
+<font color ="#0000FF">* 042 No authorization to create reports</font>
+<font color ="#0000FF">* E00 Error opening dataset, return code:</font>
+<font color ="#0000FF">* I01 Session Name</font>
+<font color ="#0000FF">* I02 Open session</font>
+<font color ="#0000FF">* I03 Insert transaction</font>
+<font color ="#0000FF">* I04 Close Session</font>
+<font color ="#0000FF">* I05 Return code =</font>
+<font color ="#0000FF">* I06 Error session created</font>
+<font color ="#0000FF">* S01 Session Name</font>
+<font color ="#0000FF">* S02 User</font>
+<font color ="#0000FF">* S03 Keep session</font>
+<font color ="#0000FF">* S04 Lock date</font>
+<font color ="#0000FF">* S05 Processing Mode</font>
+<font color ="#0000FF">* S06 Update Mode</font>
+<font color ="#0000FF">* S07 Create Session</font>
+<font color ="#0000FF">* S08 Call transaction</font>
+<font color ="#0000FF">* S09 Error sessn</font>
+<font color ="#0000FF">* S10 Nodata indicator</font>
+<font color ="#0000FF">* S11 Short log</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: MESSTAB-MSGID</font>
+<font color ="#0000FF">*MES</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

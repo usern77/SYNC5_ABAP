@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_EXCEL_UPLOAD_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_EXCEL_UPLOAD_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_EXCEL_UPLOAD_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZLKW_EXCEL_UPLOAD_TOP                    - Report ZLKW_EXCEL_UPLOAD</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zlkw_excel_upload MESSAGE-ID oo.
+
+TABLES : sscrfields.
+
+INCLUDE officeintegrationinclude.
+
+TYPE-POOLS : truxs, slis, soi, icon.
+
+<font color ="#0000FF">*smw0 엑셀다운 기능 구현을 위한 전역변수 선언</font>
+DATA : gt_doc_table      TYPE TABLE OF w3mime,
+       gv_doc_size       TYPE i,
+       gv_doc_type(80)   VALUE soi_doctype_excel97_sheet,
+       gv_doc_format(80),
+       gcl_link_server   TYPE REF TO i_oi_link_server,
+       gcl_factory       TYPE REF TO i_oi_document_factory,
+       gcl_document      TYPE REF TO i_oi_document_proxy,
+       gv_retcode        TYPE t_oi_ret_string.
+
+<font color ="#0000FF">*엑셀 업로드</font>
+DATA : gt_excel TYPE TABLE OF alsmex_tabline,
+       gs_excel TYPE alsmex_tabline.
+
+DATA : BEGIN OF gs_data,
+         matnr TYPE mara-matnr,
+         maktx TYPE makt-maktx,
+         menge TYPE menge_d,
+         meins TYPE meins,
+         netpr TYPE netpr,
+         waers TYPE waers,
+       END OF gs_data,
+
+       gt_data   LIKE TABLE OF gs_data,
+
+       gv_okcode TYPE sy-ucomm.
+
+<font color ="#0000FF">* ALV 관련</font>
+DATA : gcl_docking_container TYPE REF TO cl_gui_docking_container,
+       gcl_grid              TYPE REF TO cl_gui_alv_grid,
+       gt_fcat               TYPE lvc_t_fcat,
+       gs_fcat               TYPE lvc_s_fcat,
+       gs_layout             TYPE lvc_s_layo,
+       gs_variant            TYPE disvariant,
+       gs_stable             TYPE lvc_s_stbl.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

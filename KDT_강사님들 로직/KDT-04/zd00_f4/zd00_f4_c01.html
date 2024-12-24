@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_F4_C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_F4_C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_F4_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_F4_C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS lcl_event_handler DEFINITION.
+
+  PUBLIC SECTION.
+    METHODS handle_f4
+    FOR EVENT onf4 OF cl_gui_alv_grid IMPORTING sender
+                                                e_fieldname
+                                                e_fieldvalue
+                                                es_row_no
+                                                er_event_data
+                                                et_bad_cells
+                                                e_display.
+
+ENDCLASS.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Class (Implementation) lcl_event_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS lcl_event_handler IMPLEMENTATION.
+
+  METHOD handle_f4.
+
+    PERFORM handle_f4 USING sender  "alv grid 여러개 있을 때 구분위한 파라미터. 옵션임
+                            e_fieldname
+                            e_fieldvalue
+                            es_row_no
+                            er_event_data
+                            et_bad_cells
+                            e_display.
+
+  ENDMETHOD.
+
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

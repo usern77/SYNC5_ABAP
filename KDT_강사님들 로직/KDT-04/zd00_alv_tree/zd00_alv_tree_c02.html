@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_ALV_TREE_C02</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_ALV_TREE_C02</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_ALV_TREE_C02</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_ALV_TREE_C02</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS cl_tree_event_receiver DEFINITION.
+
+  PUBLIC SECTION.
+
+<font color ="#0000FF">*   double click item</font>
+    METHODS handle_double_click
+      FOR EVENT node_double_click OF cl_gui_alv_tree
+      IMPORTING node_key.
+
+ENDCLASS.
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       CLASS CL_TREE_EVENT_RECEIVER IMPLEMENTATION</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+CLASS cl_tree_event_receiver IMPLEMENTATION.
+
+<font color ="#0000FF">* handle double_click</font>
+  METHOD handle_double_click.
+    CHECK NOT node_key IS INITIAL.   "노드 더블클릭시에만 로직 타기
+    PERFORM display_flights USING node_key.
+  ENDMETHOD.
+
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

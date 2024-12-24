@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_TREE_EVENT_RECEIVER</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_TREE_EVENT_RECEIVER</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include BCALV_TREE_EVENT_RECEIVER</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*   INCLUDE BCALV_TREE_EVENT_RECEIVER                                  *</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+class lcl_tree_event_receiver definition.
+
+  public section.
+
+    methods handle_node_ctmenu_request
+      for event node_context_menu_request of cl_gui_alv_tree
+        importing node_key
+                  menu.
+    methods handle_node_ctmenu_selected
+      for event node_context_menu_selected of cl_gui_alv_tree
+        importing node_key
+                  fcode.
+    methods handle_item_ctmenu_request
+      for event item_context_menu_request of cl_gui_alv_tree
+        importing node_key
+                  fieldname
+                  menu.
+    methods handle_item_ctmenu_selected
+      for event item_context_menu_selected of cl_gui_alv_tree
+        importing node_key
+                  fieldname
+                  fcode.
+
+    methods handle_item_double_click
+      for event item_double_click of cl_gui_alv_tree
+      importing node_key
+                fieldname.
+
+    methods handle_button_click
+      for event button_click of cl_gui_alv_tree
+      importing node_key
+                fieldname.
+
+    methods handle_link_click
+      for event link_click of cl_gui_alv_tree
+      importing node_key
+                fieldname.
+
+    methods handle_header_click
+      for event header_click of cl_gui_alv_tree
+      importing fieldname.
+
+endclass.
+
+class lcl_tree_event_receiver implementation.
+
+  method handle_node_ctmenu_request.
+<font color ="#0000FF">*   append own functions</font>
+    call method menu-&gt;add_function
+                exporting fcode   = 'USER1'
+                          text    = 'Usercmd 1'.          "#EC NOTEXT
+    call method menu-&gt;add_function
+                exporting fcode   = 'USER2'
+                          text    = 'Usercmd 2'.          "#EC NOTEXT
+    call method menu-&gt;add_function
+                exporting fcode   = 'USER3'
+                          text    = 'Usercmd 3'.          "#EC NOTEXT
+  endmethod.
+
+  method handle_node_ctmenu_selected.
+    case fcode.
+      when 'USER1' or 'USER2' or 'USER3'.
+        message i000(0h) with 'Node-Context-Menu on Node ' node_key
+                              'fcode : ' fcode.           "#EC NOTEXT
+    endcase.
+  endmethod.
+
+  method handle_item_ctmenu_request .
+<font color ="#0000FF">*   append own functions</font>
+    call method menu-&gt;add_function
+                exporting fcode   = 'USER1'        "#EC NOTEXT
+                          text    = 'Usercmd 1'.   "#EC NOTEXT
+    call method menu-&gt;add_function
+                exporting fcode   = 'USER2'        "#EC NOTEXT
+                          text    = 'Usercmd 2'.   "#EC NOTEXT
+    call method menu-&gt;add_function
+                exporting fcode   = 'USER3'       "#EC NOTEXT
+                          text    = 'Usercmd 3'.  "#EC NOTEXT
+  endmethod.
+
+  method handle_item_ctmenu_selected.
+    case fcode.
+      when 'USER1' or 'USER2' or 'USER3'.
+        message i000(0h) with 'Item-Context-Menu on Node ' node_key
+                              'Fieldname : ' fieldname.    "#EC NOTEXT
+    endcase.
+  endmethod.
+
+  method handle_item_double_click.
+  endmethod.
+
+  method handle_button_click.
+  endmethod.
+
+  method handle_link_click.
+  endmethod.
+
+  method handle_header_click.
+  endmethod.
+
+endclass.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

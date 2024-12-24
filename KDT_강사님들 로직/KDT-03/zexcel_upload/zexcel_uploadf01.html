@@ -1,0 +1,674 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZEXCEL_UPLOADF01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZEXCEL_UPLOADF01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZEXCEL_UPLOADF01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZEXCEL_UPLOADF01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_init_value</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_init_value .
+
+  p_bukrs = '1000'.
+  p_gjahr = sy-datum(4).
+
+  SELECT SINGLE butxt INTO p_butxt
+    FROM t001
+    WHERE bukrs EQ p_bukrs.
+
+<font color ="#0000FF">*-- List box</font>
+  CLEAR gs_vrm_value.
+  gs_vrm_value-key  = 'E'.
+  gs_vrm_value-text = TEXT-l03. " Excel upload
+  APPEND gs_vrm_value TO gs_vrm_posi.
+
+  CLEAR gs_vrm_value.
+  gs_vrm_value-key  = 'R'.
+  gs_vrm_value-text = TEXT-l05. " Display data
+  APPEND gs_vrm_value TO gs_vrm_posi.
+
+  gs_vrm_name = 'P_GBN'.
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id     = gs_vrm_name
+      values = gs_vrm_posi[].
+
+<font color ="#0000FF">*-- For fuction key</font>
+  MOVE : 'Template'   TO w_functxt-quickinfo,
+         icon_xls     TO w_functxt-icon_id,
+         'Excel form' TO w_functxt-icon_text,
+         w_functxt    TO sscrfields-functxt_01.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form modify_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM modify_screen .
+
+  LOOP AT SCREEN.
+
+    CASE screen-group1.
+      WHEN 'BUK' OR 'GJR'.
+        screen-input = 0.
+        MODIFY SCREEN.
+      WHEN 'BUT'.
+        screen-intensified = 1.
+        MODIFY SCREEN.
+      WHEN 'PAT'.
+        IF p_gbn EQ 'E'.
+          screen-active = 1.
+        ELSE.
+          screen-active = 0.
+        ENDIF.
+        MODIFY SCREEN.
+    ENDCASE.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form button_control</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM button_control .
+
+  CASE sscrfields-ucomm.
+    WHEN 'FC01'.
+      PERFORM form_download.
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form form_download</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM form_download .
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Create excel upload application form</font>
+<font color ="#0000FF">**********************************************************************</font>
+  DATA : lv_filename LIKE rlgrap-filename,
+         lv_msg(100).
+
+<font color ="#0000FF">*-- Call windows browser</font>
+  CLEAR w_pfolder.
+  PERFORM get_browser_info.
+
+  IF w_pfolder IS INITIAL.
+    EXIT.
+  ENDIF.
+
+  CLEAR lv_filename.
+  CONCATENATE w_pfolder '\' 'Data_Upload' '.XLS' INTO lv_filename.
+
+  PERFORM download_template USING lv_filename.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form f4_filename</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM f4_filename .
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Upload 할 파일을 찾는다</font>
+<font color ="#0000FF">**********************************************************************</font>
+  DATA : lt_files  TYPE filetable,
+         ls_files  LIKE LINE OF lt_files,
+         lv_filter TYPE string,
+         lv_path   TYPE string,
+         lv_rc     TYPE i.
+
+  CONCATENATE cl_gui_frontend_services=&gt;filetype_excel
+              'Excel 통합 문서(*.XLSX)|*.XLSX|'
+              INTO lv_filter.
+
+  CALL METHOD cl_gui_frontend_services=&gt;file_open_dialog
+    EXPORTING
+      window_title            = 'File open'
+      file_filter             = lv_filter
+      initial_directory       = lv_path
+    CHANGING
+      file_table              = lt_files
+      rc                      = lv_rc
+    EXCEPTIONS
+      file_open_dialog_failed = 1
+      cntl_error              = 2
+      error_no_gui            = 3
+      not_supported_by_gui    = 4
+      OTHERS                  = 5.
+
+  CHECK sy-subrc EQ 0.
+  ls_files = VALUE #( lt_files[ 1 ] OPTIONAL ).
+
+  CLEAR p_path.
+  p_path = ls_files-filename.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_browser_info</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_browser_info .
+
+  IF w_pfolder IS NOT INITIAL.
+    w_initialfolder = w_pfolder.
+  ELSE.
+    CALL METHOD cl_gui_frontend_services=&gt;get_temp_directory
+      CHANGING
+        temp_dir = w_initialfolder.
+  ENDIF.
+
+  CALL METHOD cl_gui_frontend_services=&gt;directory_browse
+    EXPORTING
+      window_title    = 'Download path'
+      initial_folder  = w_initialfolder
+    CHANGING
+      selected_folder = w_pickedfolder.
+
+  IF sy-subrc = 0.
+    w_pfolder = w_pickedfolder.
+  ELSE.
+    MESSAGE i001 WITH TEXT-e05 DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form download_template</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LV_FILENAME</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM download_template  USING pv_filename.
+
+  DATA : wwwdata_item LIKE wwwdatatab,
+         rc           TYPE i.
+
+  gv_file = pv_filename.
+
+  CALL FUNCTION 'WS_FILE_DELETE'
+    EXPORTING
+      file   = gv_file
+    IMPORTING
+      return = rc.
+
+  SELECT SINGLE * FROM wwwdata
+    INTO CORRESPONDING FIELDS OF wwwdata_item
+   WHERE objid = 'ZEXCEL_UPLOAD'. " Form name
+
+  CALL FUNCTION 'DOWNLOAD_WEB_OBJECT'
+    EXPORTING
+      key         = wwwdata_item
+      destination = gv_file.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form excel_upload</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM excel_upload .
+
+  TYPES: truxs_t_text_data(4096)   TYPE c OCCURS 0.
+
+  DATA: lt_raw_data  TYPE truxs_t_text_data,
+        lt_excel     LIKE TABLE OF alsmex_tabline WITH HEADER LINE,
+        lv_index     LIKE sy-tabix,
+        lv_waers     TYPE bkpf-waers,
+        lv_dmbtr(20).
+
+  FIELD-SYMBOLS:  &lt;field&gt;.
+
+  IF p_path IS INITIAL.
+    MESSAGE s001 WITH 'Upload 할 파일을 선택하세요' DISPLAY LIKE 'E'.
+    STOP.
+  ENDIF.
+
+  CLEAR : gt_excel, gs_excel, lv_index.
+
+  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'
+    EXPORTING
+      filename                = p_path
+      i_begin_col             = 1
+      i_begin_row             = 2
+      i_end_col               = 100
+      i_end_row               = 50000
+    TABLES
+      intern                  = lt_excel
+    EXCEPTIONS
+      inconsistent_parameters = 1
+      upload_ole              = 2
+      OTHERS                  = 3.
+
+  IF sy-subrc = 1.
+    MESSAGE s001(k5) WITH TEXT-e01.
+    STOP.
+  ELSEIF sy-subrc &lt;&gt; 0.
+    MESSAGE s001(k5) WITH TEXT-e02.
+    STOP.
+  ENDIF.
+
+  CHECK NOT ( lt_excel[] IS INITIAL ).
+
+  SORT lt_excel BY row col.
+
+  LOOP AT lt_excel.
+
+    lv_index = lt_excel-col.
+    ASSIGN COMPONENT lv_index OF STRUCTURE gs_excel TO &lt;field&gt;.
+    &lt;field&gt; = lt_excel-value.
+
+    AT END OF row.
+      APPEND gs_excel TO gt_excel.
+      CLEAR gs_excel.
+    ENDAT.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_body</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_body .
+
+  CLEAR : gt_body, gs_body.
+  LOOP AT gt_excel INTO gs_excel.
+
+    gs_body = CORRESPONDING #( gs_excel ).
+
+<font color ="#0000FF">*-- Amount conversion</font>
+    _idoc_to_sap gs_body-waers gs_excel-dmbtr gs_body-dmbtr.
+
+    APPEND gs_body TO gt_body.
+    CLEAR gs_body.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_screen .
+
+  DATA : ls_variant TYPE disvariant,
+         lv_cnt     TYPE i.
+
+  ls_variant = VALUE #( report  = sy-repid
+                        handle  = 'ZID' ).
+
+  IF go_container IS NOT BOUND.
+
+    CLEAR : gt_fcat, gs_fcat.
+    PERFORM set_field_catalog USING : 'X' 'BUKRS' 'C' ' ',
+                                      'X' 'BELNR' 'C' ' ',
+                                      'X' 'GJAHR' 'C' ' ',
+                                      ' ' 'BLART' 'C' ' ',
+                                      ' ' 'BUDAT' 'C' ' ',
+                                      ' ' 'BLDAT' 'C' ' ',
+                                      ' ' 'BKTXT' ' ' 'X',
+                                      ' ' 'WAERS' 'C' ' ',
+                                      ' ' 'DMBTR' ' ' ' '.
+
+    gs_layout = VALUE #( zebra      = abap_true
+                         cwidth_opt = abap_true
+                         sel_mode   = 'D' ).
+
+    PERFORM create_object.
+
+    SET HANDLER lcl_event_handler=&gt;top_of_page  FOR go_alv_grid.
+
+    CALL METHOD go_alv_grid-&gt;set_table_for_first_display
+      EXPORTING
+        i_save          = 'A'
+        i_default       = 'X'
+        is_layout       = gs_layout
+        is_variant      = ls_variant
+      CHANGING
+        it_outtab       = gt_body
+        it_fieldcatalog = gt_fcat.
+
+    PERFORM register_event.
+
+    lv_cnt = lines( gt_body ).
+    MESSAGE s001 WITH lv_cnt '건이 조회되었습니다.'.
+
+  ELSE.
+    PERFORM refresh_table.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_catalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_catalog  USING pv_key pv_field pv_just pv_emphasize.
+
+  gs_fcat = VALUE #( key        = pv_key
+                     fieldname  = pv_field
+                     ref_table  = 'BKPF'
+                     just       = pv_just
+                     emphasize  = pv_emphasize ).
+  CASE pv_field.
+    WHEN 'DMBTR'.
+      gs_fcat-ref_table   = 'BSEG'.
+      gs_fcat-cfieldname  = 'WAERS'.
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+
+  CREATE OBJECT go_top_container
+    EXPORTING
+      repid     = sy-cprog
+      dynnr     = sy-dynnr
+      side      = go_top_container-&gt;dock_at_top
+      extension = 45.
+
+  CREATE OBJECT go_container
+    EXPORTING
+      repid     = sy-cprog
+      dynnr     = sy-dynnr
+      side      = go_container-&gt;dock_at_left
+      extension = 3000.
+
+  CREATE OBJECT go_alv_grid
+    EXPORTING
+      i_parent = go_container.
+
+<font color ="#0000FF">* Create TOP-Document</font>
+  CREATE OBJECT go_dyndoc_id
+    EXPORTING
+      style = 'ALV_GRID'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_table</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh_table .
+
+  gs_stable = VALUE #( col = abap_true
+                       row = abap_true ).
+
+  CALL METHOD go_alv_grid-&gt;refresh_table_display
+    EXPORTING
+      is_stable = gs_stable.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form register_event</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM register_event .
+
+  CALL METHOD go_dyndoc_id-&gt;initialize_document
+    EXPORTING
+      background_color = cl_dd_area=&gt;col_textarea.
+
+  CALL METHOD go_alv_grid-&gt;list_processing_events
+    EXPORTING
+      i_event_name = 'TOP_OF_PAGE'
+      i_dyndoc_id  = go_dyndoc_id.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form event_top_of_page</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM event_top_of_page .
+
+  DATA : lr_dd_table TYPE REF TO cl_dd_table_element,
+         col_field   TYPE REF TO cl_dd_area,
+         col_value   TYPE REF TO cl_dd_area.
+
+  DATA : lv_text TYPE sdydo_text_element.
+
+  CALL METHOD go_dyndoc_id-&gt;add_table
+    EXPORTING
+      no_of_columns = 2
+      border        = '0'
+    IMPORTING
+      table         = lr_dd_table.
+
+<font color ="#0000FF">*-- Set column</font>
+  CALL METHOD lr_dd_table-&gt;add_column
+    IMPORTING
+      column = col_field.
+
+  CALL METHOD lr_dd_table-&gt;add_column
+    IMPORTING
+      column = col_value.
+
+<font color ="#0000FF">*-- 회사코드</font>
+  SELECT SINGLE butxt INTO lv_text
+    FROM t001
+    WHERE bukrs EQ p_bukrs.
+
+  PERFORM add_row USING lr_dd_table col_field col_value '회사코드' lv_text.
+
+<font color ="#0000FF">*-- 회계연도</font>
+  lv_text = p_gjahr && '년'.
+  PERFORM add_row USING lr_dd_table col_field col_value '회계연도' lv_text.
+
+  CASE p_gbn.
+    WHEN 'E'.
+      lv_text = 'Excel Upload'.
+    WHEN 'R'.
+      lv_text = 'Display data'.
+  ENDCASE.
+
+  PERFORM add_row USING lr_dd_table col_field col_value '작업구분' lv_text.
+
+  PERFORM set_top_of_page.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form add_row</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LR_DD_TABLE</font>
+<font color ="#0000FF">*&      --&gt; COL_FIELD</font>
+<font color ="#0000FF">*&      --&gt; COL_VALUE</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; LV_TEXT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_row  USING pr_dd_table  TYPE REF TO cl_dd_table_element
+                    pv_col_field TYPE REF TO cl_dd_area
+                    pv_col_value TYPE REF TO cl_dd_area
+                    pv_field
+                    pv_text.
+
+  DATA : lv_text TYPE sdydo_text_element.
+
+<font color ="#0000FF">*-- Field.</font>
+  lv_text = pv_field.
+
+  CALL METHOD pv_col_field-&gt;add_text
+    EXPORTING
+      text         = lv_text
+      sap_emphasis = cl_dd_document=&gt;strong
+      sap_color    = cl_dd_document=&gt;list_heading_inv.
+
+  CALL METHOD pv_col_field-&gt;add_gap
+    EXPORTING
+      width = 3.
+
+<font color ="#0000FF">*-- Value.</font>
+  lv_text = pv_text.
+
+  CALL METHOD pv_col_value-&gt;add_text
+    EXPORTING
+      text         = lv_text
+      sap_emphasis = cl_dd_document=&gt;heading
+      sap_color    = cl_dd_document=&gt;list_negative_inv.
+
+  CALL METHOD pv_col_value-&gt;add_gap
+    EXPORTING
+      width = 3.
+
+  CALL METHOD pr_dd_table-&gt;new_row.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_top_of_page</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_top_of_page .
+
+<font color ="#0000FF">* Creating html control</font>
+  IF go_html_cntrl IS INITIAL.
+    CREATE OBJECT go_html_cntrl
+      EXPORTING
+        parent = go_top_container.
+  ENDIF.
+
+  CALL METHOD go_dyndoc_id-&gt;merge_document.
+  go_dyndoc_id-&gt;html_control = go_html_cntrl.
+
+<font color ="#0000FF">* Display document</font>
+  CALL METHOD go_dyndoc_id-&gt;display_document
+    EXPORTING
+      reuse_control      = 'X'
+      parent             = go_top_container
+    EXCEPTIONS
+      html_display_error = 1.
+
+  IF sy-subrc NE 0.
+    MESSAGE s001 WITH TEXT-e03 DISPLAY LIKE 'E'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form data_save</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM data_save .
+
+  DATA : lv_answer.
+
+  _popup_to_confirm TEXT-q01 lv_answer.
+
+  IF lv_answer NE '1'.
+    EXIT.
+  ENDIF.
+
+<font color ="#0000FF">*-- Data save</font>
+  MODIFY ztbkpf FROM TABLE gt_body.
+  COMMIT WORK.
+
+  MESSAGE s102.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_base_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_base_data .
+
+  CLEAR gt_body.
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE gt_body
+    FROM ztbkpf
+    WHERE bukrs EQ p_bukrs
+      AND gjahr EQ p_gjahr.
+
+  IF gt_body IS INITIAL.
+    MESSAGE s037 DISPLAY LIKE 'E'.
+    STOP.
+  ENDIF.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

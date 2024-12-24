@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_CELL_EDIT_C00</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_CELL_EDIT_C00</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  ALV Cell Edit Mode</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZALV_COLUMN_EDIT_C00</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZALV_CELL_EDIT_C00.
+
+DATA: BEGIN OF GS_DATA.
+        INCLUDE TYPE SPFLI.
+<font color ="#0000FF">*       ALV Cell에 Edit 가능 컨트롤 하기 위한 필드.</font>
+<font color ="#0000FF">*       STYLE 필드( Type LVC_T_STYL )를 사용하여 Cell 개별 Edit 모드를 ON/OFF 제어</font>
+DATA:   IT_CELL TYPE LVC_T_STYL,
+      END OF GS_DATA.
+
+DATA: GT_DATA LIKE TABLE OF GS_DATA.
+
+DATA: GS_CELL TYPE LVC_S_STYL.
+
+DATA: OK_CODE TYPE SY-UCOMM.
+
+DATA: GO_DOCK TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+      GO_ALV  TYPE REF TO CL_GUI_ALV_GRID.
+
+
+DATA: GS_LAYOUT TYPE LVC_S_LAYO.
+
+SELECTION-SCREEN BEGIN OF BLOCK BLK1 WITH FRAME.
+  SELECT-OPTIONS: SO_CAR FOR GS_DATA-CARRID.
+SELECTION-SCREEN END OF BLOCK BLK1.
+
+START-OF-SELECTION.
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DATA
+    FROM SPFLI
+    WHERE CARRID IN SO_CAR.
+
+  LOOP AT GT_DATA INTO GS_DATA.
+
+<font color ="#0000FF">*   ALV Cell Edit 기능 설정 할 필드.</font>
+    GS_CELL-FIELDNAME = 'CITYFROM'.
+<font color ="#0000FF">*   ALV Cell Edit 여부. MC_STYLE_ENABLED(가능), MC_STYLE_DISABLED(불가능)</font>
+    GS_CELL-STYLE = CL_GUI_ALV_GRID=&gt;MC_STYLE_ENABLED.
+
+    INSERT GS_CELL INTO TABLE GS_DATA-IT_CELL.
+
+    MODIFY GT_DATA FROM GS_DATA TRANSPORTING IT_CELL.
+
+    CLEAR: GS_DATA,
+           GS_CELL.
+  ENDLOOP.
+
+  CALL SCREEN 100.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+  SET TITLEBAR 'T100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE CLEAR_OK_CODE OUTPUT.
+  CLEAR: OK_CODE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_ALV OUTPUT.
+  IF GO_DOCK IS INITIAL.
+    CREATE OBJECT GO_DOCK
+      EXPORTING
+        REPID                       = SY-REPID
+        DYNNR                       = SY-DYNNR
+        SIDE                        = CL_GUI_DOCKING_CONTAINER=&gt;DOCK_AT_TOP
+        EXTENSION                   = 1500
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_ALV
+      EXPORTING
+        I_PARENT          = GO_DOCK
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Method "SET_READY_FOR_INPUT"를 통해 EDIT Cell을 input 활성화( 1 )/ input 비활성화( 0 )</font>
+<font color ="#0000FF">**********************************************************************</font>
+    CALL METHOD GO_ALV-&gt;SET_READY_FOR_INPUT
+      EXPORTING
+        I_READY_FOR_INPUT = 1.
+
+<font color ="#0000FF">***********************************************************************</font>
+<font color ="#0000FF">**  데이터 변경시마다 바로 인터널 테이블에 반영하게 하려면</font>
+<font color ="#0000FF">**  Method "REGISTER_EDIT_EVENT" 사용한다.</font>
+<font color ="#0000FF">***********************************************************************</font>
+<font color ="#0000FF">**   Cell 에 "Enter Key" 를 쳤을 때</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    CALL METHOD GO_ALV-&gt;REGISTER_EDIT_EVENT</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        I_EVENT_ID = CL_GUI_ALV_GRID=&gt;MC_EVT_ENTER</font>
+<font color ="#0000FF">*      EXCEPTIONS</font>
+<font color ="#0000FF">*        ERROR      = 1                " Error</font>
+<font color ="#0000FF">*        OTHERS     = 2.</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">**    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">**      WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**--------------------------------------------------------------------*</font>
+<font color ="#0000FF">** Cell 변경 후 Cell(커서)을 이동했을 때</font>
+<font color ="#0000FF">*    CALL METHOD GO_ALV-&gt;REGISTER_EDIT_EVENT</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        I_EVENT_ID = CL_GUI_ALV_GRID=&gt;MC_EVT_MODIFIED</font>
+<font color ="#0000FF">*      EXCEPTIONS</font>
+<font color ="#0000FF">*        ERROR      = 1                " Error</font>
+<font color ="#0000FF">*        OTHERS     = 2.</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">**    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">**      WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">***********************************************************************</font>
+
+    PERFORM SET_LAYOUT.
+
+    CALL METHOD GO_ALV-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        I_BYPASSING_BUFFER            = 'X'
+        I_STRUCTURE_NAME              = 'SPFLI'
+        IS_LAYOUT                     = GS_LAYOUT
+      CHANGING
+        IT_OUTTAB                     = GT_DATA
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+    ENDIF.
+
+  ELSE.
+<font color ="#0000FF">***********************************************************************</font>
+<font color ="#0000FF">**   현재까지 변경된 데이터를 인터널 테이블에 반영하려면</font>
+<font color ="#0000FF">**   Method "CHECK_CHANGED_DATA"를 사용한다.</font>
+<font color ="#0000FF">***********************************************************************</font>
+<font color ="#0000FF">**   ALV 변경 내용 Internal table 반영.</font>
+<font color ="#0000FF">*    CALL METHOD GO_ALV-&gt;CHECK_CHANGED_DATA.</font>
+<font color ="#0000FF">***********************************************************************</font>
+
+    CALL METHOD GO_ALV-&gt;REFRESH_TABLE_DISPLAY
+      EXCEPTIONS
+        FINISHED = 1
+        OTHERS   = 2.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*      IMPLEMENT SUITABLE ERROR HANDLING HERE</font>
+    ENDIF.
+
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK' OR 'CANC'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_LAYOUT .
+
+  GS_LAYOUT-STYLEFNAME = 'IT_CELL'.
+
+<font color ="#0000FF">* LAYOUT의 "NO_ROWINS"필드에 'X' 값을 주면, Standard Edit 기능 제외</font>
+<font color ="#0000FF">* 라인(Row) 기능 막음.</font>
+<font color ="#0000FF">*  GS_LAYOUT-NO_ROWINS = 'X'.</font>
+
+
+ENDFORM.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; Flight Connection</font>
+<font color ="#0000FF">* T100 --&gt; Flight Connection</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* SO_CAR D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

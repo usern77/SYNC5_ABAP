@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_F4_EVENTTOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_F4_EVENTTOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZALV_F4_EVENTTOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZALV_F4_EVENTTOP                         - Report ZALV_F4_EVENT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zalv_f4_event MESSAGE-ID k5.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* TABLES</font>
+<font color ="#0000FF">**********************************************************************</font>
+TABLES ska1.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Class instance</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : go_container     TYPE REF TO cl_gui_docking_container,
+       go_alv_grid      TYPE REF TO cl_gui_alv_grid,
+<font color ="#0000FF">*-- For Top-of-page -------------------------------------------------*</font>
+       go_top_container TYPE REF TO cl_gui_docking_container,
+       go_dyndoc_id     TYPE REF TO cl_dd_document,
+       go_html_cntrl    TYPE REF TO cl_gui_html_viewer.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Internal table and Work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : BEGIN OF gs_body,
+         ktopl  TYPE ska1-ktopl,
+         saknr  TYPE ska1-saknr,
+         txt50  TYPE skat-txt50,
+         koart  TYPE bseg-koart,
+         ddtext TYPE dd07t-ddtext,
+       END OF gs_body,
+       gt_body LIKE TABLE OF gs_body.
+
+<font color ="#0000FF">*-- F4 Search help</font>
+DATA : BEGIN OF gs_sh_saknr,
+         saknr TYPE ska1-saknr,
+         txt50 TYPE skat-txt50,
+       END OF gs_sh_saknr,
+       gt_sh_saknr LIKE TABLE OF gs_sh_saknr.
+
+DATA : BEGIN OF gs_sh_koart,
+         koart  TYPE bseg-koart,
+         ddtext TYPE dd07t-ddtext,
+       END OF gs_sh_koart,
+       gt_sh_koart LIKE TABLE OF gs_sh_koart.
+
+<font color ="#0000FF">*-- For ALV</font>
+DATA : gt_fcat    TYPE lvc_t_fcat,
+       gs_fcat    TYPE lvc_s_fcat,
+       gs_layout  TYPE lvc_s_layo,
+       gs_variant TYPE disvariant,
+       gs_stable  TYPE lvc_s_stbl.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : gv_okcode TYPE sy-ucomm.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

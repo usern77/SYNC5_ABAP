@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_DOCKING</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_DOCKING</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [D00] ALV container</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZD00_DOCKING</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zd00_docking MESSAGE-ID zmd00.
+
+include <a href ="zd00_docking_top.html">zd00_docking_top</a>.    " global data
+include <a href ="zd00_docking_s01.html">zd00_docking_s01</a>.    " selection screen
+
+include <a href ="zd00_docking_c01.html">zd00_docking_c01</a>.  " local class
+include <a href ="zd00_docking_o01.html">zd00_docking_o01</a>.  " pbo-modules
+include <a href ="zd00_docking_i01.html">zd00_docking_i01</a>.  " pai-modules
+
+include <a href ="zd00_docking_e01.html">zd00_docking_e01</a>.  " events
+include <a href ="zd00_docking_f01.html">zd00_docking_f01</a>.  " form-routines
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [D00] Alv container</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 조회조건</font>
+<font color ="#0000FF">* T02 선택 조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_R1         custom container</font>
+<font color ="#0000FF">* PA_R2         docking container</font>
+<font color ="#0000FF">* PA_R3         split container</font>
+<font color ="#0000FF">* PA_R4         easy split container</font>
+<font color ="#0000FF">* PA_R5         dialog box container</font>
+<font color ="#0000FF">* PA_R6         docking+ screen element</font>
+<font color ="#0000FF">* PA_S1         by custom container</font>
+<font color ="#0000FF">* PA_S2         by docking container</font>
+<font color ="#0000FF">* PA_VAR         Layout variant</font>
+<font color ="#0000FF">* SO_CARR         항공사ID</font>
+<font color ="#0000FF">* SO_CONN         항공편ID</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMD00</font>
+<font color ="#0000FF">*000</font>
+<font color ="#0000FF">*001</font>
+<font color ="#0000FF">*002</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

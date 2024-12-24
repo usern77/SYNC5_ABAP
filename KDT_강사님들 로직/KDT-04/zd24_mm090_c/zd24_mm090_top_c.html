@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD24_MM090_TOP_C</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD24_MM090_TOP_C</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD24_MM090_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZD24_MM090_TOP                           - Report ZD24_MM090</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*REPORT ZD24_MM090 MESSAGE-ID ZDC_MSG.</font>
+
+
+TABLES : zdct_mm001,
+         inri, tnro, " number range 필요한 wa
+         sscrfields. " EXCEL 다운로드에 필요
+
+<font color ="#0000FF">*- ok_code</font>
+DATA : ok_code           TYPE sy-ucomm,
+       gv_make_fail_flag TYPE c,
+       gv_no_flag        TYPE c.
+
+DATA : gv_dynnr TYPE sy-dynnr. "초기 tabstrip 핸들링 변수
+
+DATA : gv_active(6).
+
+FIELD-SYMBOLS : &lt;fs&gt; TYPE any.
+
+<font color ="#0000FF">*- ALV GRID 결과 데이터 TYPES</font>
+TYPES : BEGIN OF gty_mat,
+          mandt        TYPE zdct_mm001-mandt,
+          matnr        TYPE zdct_mm001-matnr,
+          matnm        TYPE zdct_mm001-matnm,
+          mattype      TYPE zdct_mm001-mattype,
+          ldtime       TYPE zdct_mm001-ldtime,
+          safsto       TYPE zdct_mm001-safsto,
+          unit         TYPE zdct_mm001-unit,
+          ddat         TYPE zdct_mm001-ddat,
+          agedat       TYPE zdct_mm001-agedat,
+          batfg        TYPE zdct_mm001-batfg,
+          oktemp       TYPE zdct_mm001-oktemp,
+          tempunit     TYPE zdct_mm001-tempunit,
+          delfg        TYPE zdct_mm001-delfg,
+          cellstyl     TYPE lvc_t_styl,
+          changed_by   TYPE zdct_mm001-changed_by,
+          changed_on   TYPE zdct_mm001-changed_on,
+          changed_time TYPE zdct_mm001-changed_time,
+          color        TYPE c LENGTH 4,
+        END OF gty_mat.
+
+<font color ="#0000FF">*- ALV GRID 결과 데이터</font>
+DATA : gt_mat TYPE TABLE OF gty_mat, "itab
+       gs_mat TYPE          gty_mat. "wa
+
+
+<font color ="#0000FF">*-수정 시 색 변경 위한 데이터 정의 (비교 gt_mat)</font>
+DATA : gt_mat3 TYPE TABLE OF gty_mat.
+
+<font color ="#0000FF">*- 데이터 건수</font>
+DATA : gv_lines TYPE i.
+
+<font color ="#0000FF">*- EDIT MODE 변경을 위한 변수</font>
+DATA gv_check TYPE i.
+
+<font color ="#0000FF">*- 팝업 메시지 answer</font>
+DATA : gv_answer TYPE c.
+
+<font color ="#0000FF">*- 변경 데이터 확인</font>
+DATA : gv_changed_rows TYPE i.
+
+<font color ="#0000FF">*- 선택된 행의 정보</font>
+DATA : gt_row_no TYPE lvc_t_roid,  " 선택된 행 정보 itab
+       gs_row_no TYPE lvc_s_roid.  " wa
+
+<font color ="#0000FF">*- 생성할 입력 필드 넣을 Structure</font>
+DATA : gs_mm001 TYPE zdct_mm001.
+
+<font color ="#0000FF">*-채번 값 넣기 위한 변수 선언</font>
+DATA : gv_1 TYPE zdct_mm001-mattype.
+
+<font color ="#0000FF">*-채번 결괴 (원자재)</font>
+DATA : gv_num  TYPE zdct_mm001-matnr. "채번 결과
+
+<font color ="#0000FF">*- 채번 오브젝트 (number range 이름)</font>
+DATA: gv_object TYPE inri-object.
+
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& OLE OBJECT -&gt; 오브젝트를 통해 엑셀 기능 사용</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+"2024-10-24 추가
+DATA: go_excel TYPE ole2_object,
+      go_wbook TYPE ole2_object,
+      go_sheet TYPE ole2_object,
+      go_cells TYPE ole2_object.
+
+" ROW, 컬럼(필드), 값 형태의 테이블 -&gt; EXCEL의 값을 ITAB으로 받아올 때 사용
+DATA: gt_upload LIKE alsmex_tabline OCCURS 0 WITH HEADER LINE.
+
+<font color ="#0000FF">** 엑셀에서 데이터를 받아올 ITAB WA 선언</font>
+<font color ="#0000FF">*DATA : gt_excel TYPE TABLE OF zdct_mm001,</font>
+<font color ="#0000FF">*       gs_excel TYPE zdct_mm001.</font>
+
+<font color ="#0000FF">*- 엑셀에서 데이터를 받아올 데이터 TYPES</font>
+TYPES: BEGIN OF ty_excel .
+         include structure <a href ="zdct_mm001/dictionary-zdct_mm001.html">zdct_mm001</a>.
+TYPES:   cellscol TYPE lvc_t_scol, "2024-10-31 추가
+       END OF ty_excel.
+
+<font color ="#0000FF">*- 엑셀에서 데이터를 받아올 데이터 변수</font>
+DATA: gt_excel TYPE TABLE OF ty_excel, "ITAB WA 선언 확장된 구조체로 인터널 테이블 선언
+      gs_excel TYPE ty_excel.
+
+
+
+<font color ="#0000FF">*- 엑셀에서 사용자가 필요한 것만 입력 가능한 형태 지정하여 업로드</font>
+DATA: BEGIN OF gs_excel2,
+        matnm   TYPE zdct_mm001-matnm,
+        mattype TYPE zdct_mm001-mattype,
+        ldtime  TYPE zdct_mm001-ldtime,
+        safsto  TYPE zdct_mm001-safsto,
+        ddat    TYPE zdct_mm001-ddat,
+        agedat  TYPE zdct_mm001-agedat,
+        batfg   TYPE zdct_mm001-batfg,
+        oktemp  TYPE zdct_mm001-oktemp,
+      END OF gs_excel2.
+
+<font color ="#0000FF">* 테이블 속성을 가져올 떄 사용하는 ITAB WA 선언</font>
+DATA: gt_tab TYPE TABLE OF dfies,
+      gs_tab TYPE dfies.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* ALV GRID</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : go_container TYPE REF TO cl_gui_custom_container,   " container
+       go_alv_grid  TYPE REF TO cl_gui_alv_grid.           " alv_grid
+
+
+<font color ="#0000FF">* Field catalog</font>
+DATA : gt_fcat TYPE lvc_t_fcat,    " itab
+       gs_fcat TYPE lvc_s_fcat.    " wa
+
+<font color ="#0000FF">* Layout variant</font>
+DATA : gs_variant TYPE disvariant,
+       gv_save    TYPE c LENGTH 1.
+
+<font color ="#0000FF">* Layout</font>
+DATA : gs_layout TYPE lvc_s_layo. "조회
+DATA gs_layout2  TYPE lvc_s_layo. "자재다중생성
+
+<font color ="#0000FF">* Sort</font>
+DATA : gt_sort TYPE lvc_t_sort,    " itab
+       gs_sort TYPE lvc_s_sort.    " wa
+
+<font color ="#0000FF">* color</font>
+DATA : gs_color TYPE lvc_s_scol.
+
+<font color ="#0000FF">* TOOLBAR BUTTON</font>
+DATA : gs_toolbar TYPE stb_button.
+DATA : gv_change TYPE c.
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*-자재 단일 생성 입력 필드</font>
+DATA : pa_con5  TYPE zdct_mm001-matnm,
+       pa_con6  TYPE zdct_mm001-mattype,
+       pa_con7  TYPE zdct_mm001-ldtime,
+       pa_con8  TYPE zdct_mm001-safsto,
+       pa_con9  TYPE zdct_mm001-unit,
+       pa_con10 TYPE zdct_mm001-ddat,
+       pa_con11 TYPE zdct_mm001-agedat,
+       pa_con12 TYPE zdct_mm001-batfg,
+       pa_con13 TYPE zdct_mm001-oktemp,
+       pa_con14 TYPE zdct_mm001-tempunit.
+
+"엑셀 file 체크 하기 위한 변수 ex) pdf,jpg 등 xlsx 와 관련 없는 파일 못 넣게하기
+DATA : gv_excel TYPE rlgrap-filename.
+
+DATA: gv_flag.  "gv_flag2. "실패 플래그
+
+DATA gv_has_error TYPE abap_bool. "올바른 excel 데이터만 insert 하게 하기 위한 데이터 변수 선언
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

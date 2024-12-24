@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZPDF_VIEWERTOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZPDF_VIEWERTOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZPDF_VIEWERTOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZPDF_VIEWERTOP                           - Report ZPDF_VIEWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zpdf_viewer MESSAGE-ID k5.
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Class instance</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : go_container   TYPE REF TO cl_gui_custom_container,
+       go_html_viewer TYPE REF TO cl_gui_html_viewer.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Internal table and Work area</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : gt_data  TYPE TABLE OF x255.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* Common variable</font>
+<font color ="#0000FF">**********************************************************************</font>
+DATA : gv_okcode  TYPE sy-ucomm.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

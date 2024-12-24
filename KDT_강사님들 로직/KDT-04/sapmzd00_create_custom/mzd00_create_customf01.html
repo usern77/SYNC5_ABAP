@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZD00_CREATE_CUSTOMF01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZD00_CREATE_CUSTOMF01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">***INCLUDE MZD00_CREATE_CUSTOMF01</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  NUMBER_GET_NEXT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      &lt;--cv_id  text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM number_get_next CHANGING cv_id TYPE s_customer.
+
+  DATA : lv_rc TYPE nrreturn.
+
+<font color ="#0000FF">* get next free number in the number range '01'</font>
+<font color ="#0000FF">* of number object'SBUSPID'</font>
+  CALL FUNCTION 'NUMBER_GET_NEXT'
+    EXPORTING
+      nr_range_nr = '01'
+      object      = 'SBUSPID'
+    IMPORTING
+      number      = cv_id
+      returncode  = lv_rc
+    EXCEPTIONS
+      OTHERS      = 1.
+
+  CASE sy-subrc.
+    WHEN 0.
+      CASE lv_rc.
+        WHEN 1.
+<font color ="#0000FF">*         number of remaining numbers critical</font>
+          MESSAGE s070.
+        WHEN 2.
+<font color ="#0000FF">*         last number</font>
+          MESSAGE s071.
+        WHEN 3.
+<font color ="#0000FF">*         no free number left over</font>
+          MESSAGE a072.
+      ENDCASE.
+    WHEN 1.
+<font color ="#0000FF">*     internal error</font>
+      MESSAGE a073 WITH sy-subrc.
+  ENDCASE.
+
+ENDFORM.                               " NUMBER_GET_NEXT
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  ASK_SAVE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      &lt;--CV_FCODE  text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM ask_save CHANGING cv_result TYPE gty_flag.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      titlebar      = TEXT-003
+      text_question = TEXT-001
+    IMPORTING
+      answer        = cv_result.
+
+ENDFORM.                               " ASK_SAVE
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  ASK_LOSS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM ask_loss.
+
+  DATA : lv_result TYPE c.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      titlebar              = TEXT-003
+      text_question         = TEXT-004
+      display_cancel_button = space
+    IMPORTING
+      answer                = lv_result.
+
+  CASE lv_result.
+    WHEN '1'.
+      LEAVE TO SCREEN 0.
+    WHEN '2'.
+      CLEAR ok_code.
+      LEAVE TO SCREEN 100.
+  ENDCASE.
+
+ENDFORM.                               " ASK_LOSS
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  SAVE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      &lt;--CS_SCUSTOM  text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM save CHANGING cs_scustom TYPE scustom.
+
+  DATA : ls_cust TYPE zcustom.
+
+<font color ="#0000FF">* get new number for SCUSTOM-ID from number range object BC_SCUSTOM</font>
+  PERFORM number_get_next CHANGING cs_scustom-id.
+
+<font color ="#0000FF">* save new customer</font>
+  MOVE-CORRESPONDING cs_scustom TO ls_cust.
+  ls_cust-cuser = sy-uname.
+  ls_cust-cdate = sy-datum.
+  ls_cust-ctime = sy-uzeit.
+
+  INSERT INTO zcustom VALUES ls_cust.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a048.
+  ELSE.
+<font color ="#0000FF">*   ToDo: Store customer id in SAP memory</font>
+    MESSAGE s015 WITH cs_scustom-id.
+  ENDIF.
+
+ENDFORM.                               " SAVE
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

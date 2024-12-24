@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_VRM_LISTBOX_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_VRM_LISTBOX_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_VRM_LISTBOX_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZLKW_VRM_LISTBOX_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form f4_carrid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM f4_carrid .
+
+  DATA : ls_list TYPE vrm_value,
+         lt_list LIKE TABLE OF ls_list.
+
+  CLEAR   : ls_list.
+  REFRESH : lt_list.
+
+  SELECT carrid, carrname
+    INTO TABLE @DATA(lt_scarr)
+    FROM scarr.
+
+  LOOP AT lt_scarr INTO DATA(ls_scarr).
+
+    ls_list-key  = ls_scarr-carrid.
+    ls_list-text = ls_scarr-carrname.
+
+    APPEND ls_list TO lt_list.
+    CLEAR  ls_list.
+
+  ENDLOOP.
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id     = 'PA_CARR'
+      values = lt_list.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

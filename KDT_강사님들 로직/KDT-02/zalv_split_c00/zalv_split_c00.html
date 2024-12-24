@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_SPLIT_C00</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_SPLIT_C00</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Split Contrainer</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZALV_SPLIT_C00</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZALV_SPLIT_C00.
+
+DATA: GT_SCARR TYPE TABLE OF SCARR,
+      GS_SCARR LIKE LINE OF GT_SCARR,
+      GT_SPFLI TYPE TABLE OF SPFLI.
+
+DATA: OK_CODE TYPE SY-UCOMM.
+
+DATA: GO_DOCK  TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+      GO_SPLIT TYPE REF TO CL_GUI_SPLITTER_CONTAINER,
+      GO_CONT1 TYPE REF TO CL_GUI_CONTAINER,
+      GO_CONT2 TYPE REF TO CL_GUI_CONTAINER,
+      GO_ALV1  TYPE REF TO CL_GUI_ALV_GRID,
+      GO_ALV2  TYPE REF TO CL_GUI_ALV_GRID.
+
+DATA: GO_DOCK2 TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+      GO_ALV3  TYPE REF TO CL_GUI_ALV_GRID.
+
+SELECTION-SCREEN BEGIN OF BLOCK BLK1 WITH FRAME TITLE TEXT-T01.
+  SELECT-OPTIONS: SO_CAR FOR GS_SCARR-CARRID.
+SELECTION-SCREEN END OF BLOCK BLK1.
+
+START-OF-SELECTION.
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE GT_SCARR
+    FROM SCARR
+    WHERE CARRID IN SO_CAR.
+
+  CALL SCREEN 100.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'S100'.
+  SET TITLEBAR 'T100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE CLEAR_OK_CODE OUTPUT.
+  CLEAR: OK_CODE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+
+  CASE OK_CODE.
+    WHEN 'BACK' OR 'CANCEL' OR 'EXIT'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_ALV OUTPUT.
+  IF GO_DOCK IS INITIAL.
+    CREATE OBJECT GO_DOCK
+      EXPORTING
+        REPID                       = SY-REPID
+        DYNNR                       = SY-DYNNR
+        SIDE                        = CL_GUI_DOCKING_CONTAINER=&gt;DOCK_AT_TOP
+<font color ="#0000FF">*       EXTENSION                   = 5000</font>
+        RATIO                       = 50
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_SPLIT
+      EXPORTING
+        PARENT            = GO_DOCK
+        ROWS              = 1   "행수 최대 16.
+        COLUMNS           = 2   "컬럼수 최대 16.
+      EXCEPTIONS
+        CNTL_ERROR        = 1
+        CNTL_SYSTEM_ERROR = 2
+        OTHERS            = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+<font color ="#0000FF">*   SPLITTER 컨테이너로 나눈 컨테이너에 ACCESS.</font>
+    CALL METHOD GO_SPLIT-&gt;GET_CONTAINER
+      EXPORTING
+        ROW       = 1   "행 ID.
+        COLUMN    = 1   "열 ID.
+      RECEIVING
+        CONTAINER = GO_CONT1.
+
+<font color ="#0000FF">*   SPLITTER 컨테이너로 나눈 컨테이너에 ACCESS.</font>
+    CALL METHOD GO_SPLIT-&gt;GET_CONTAINER
+      EXPORTING
+        ROW       = 1
+        COLUMN    = 2
+      RECEIVING
+        CONTAINER = GO_CONT2.
+
+    CREATE OBJECT GO_ALV1
+      EXPORTING
+        I_PARENT          = GO_CONT1
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*               WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+<font color ="#0000FF">*   행 컨테이너의 HIGHT 설정.</font>
+    CALL METHOD GO_SPLIT-&gt;SET_ROW_HEIGHT
+      EXPORTING
+        ID                = 1                 " Row ID
+        HEIGHT            = 30                 " Height(%)
+      EXCEPTIONS
+        CNTL_ERROR        = 1                " See CL_GUI_CONTROL
+        CNTL_SYSTEM_ERROR = 2                " See CL_GUI_CONTROL
+        OTHERS            = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*  MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*    WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+<font color ="#0000FF">*    컬럼의 WIDTH 설정.</font>
+<font color ="#0000FF">*    CALL METHOD GO_SPLIT-&gt;SET_COLUMN_WIDTH</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        ID                =                  " Column ID</font>
+<font color ="#0000FF">*        WIDTH             =                  " NPlWidth</font>
+<font color ="#0000FF">**      IMPORTING</font>
+<font color ="#0000FF">**        RESULT            =                  " Result Code</font>
+<font color ="#0000FF">**      EXCEPTIONS</font>
+<font color ="#0000FF">**        CNTL_ERROR        = 1                " See CL_GUI_CONTROL</font>
+<font color ="#0000FF">**        CNTL_SYSTEM_ERROR = 2                " See CL_GUI_CONTROL</font>
+<font color ="#0000FF">**        OTHERS            = 3</font>
+<font color ="#0000FF">*      .</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">**     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">**       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+
+    CREATE OBJECT GO_ALV2
+      EXPORTING
+        I_PARENT          = GO_CONT2
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*               WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CALL METHOD GO_ALV1-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        I_STRUCTURE_NAME              = 'SCARR'
+      CHANGING
+        IT_OUTTAB                     = GT_SCARR
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+
+    CALL METHOD GO_ALV1-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        I_STRUCTURE_NAME              = 'SPFLI'
+      CHANGING
+        IT_OUTTAB                     = GT_SPFLI
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+
+  ENDIF.
+
+  IF GO_DOCK2 IS INITIAL.
+    CREATE OBJECT GO_DOCK2
+      EXPORTING
+        REPID                       = SY-REPID
+        DYNNR                       = SY-DYNNR
+        SIDE                        = CL_GUI_DOCKING_CONTAINER=&gt;DOCK_AT_BOTTOM
+<font color ="#0000FF">*       EXTENSION                   = 5000</font>
+        RATIO                       = 50
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT GO_ALV3
+      EXPORTING
+        I_PARENT          = GO_DOCK2
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*               WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CALL METHOD GO_ALV3-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        I_STRUCTURE_NAME              = 'SPFLI'
+      CHANGING
+        IT_OUTTAB                     = GT_SPFLI
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+  ENDIF.
+ENDMODULE.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; Split Container</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* SO_CAR D       .</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

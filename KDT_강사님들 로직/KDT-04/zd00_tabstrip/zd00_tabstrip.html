@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_TABSTRIP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_TABSTRIP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [D00] Tabstrip</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZD00_TABSTRIP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zd00_tabstrip.
+
+TABLES sflight.
+
+DATA : gv_chk.
+
+SELECTION-SCREEN BEGIN OF SCREEN 101 AS SUBSCREEN.
+
+  PARAMETERS:
+    pa_id  TYPE sflight-carrid,
+    pa_con TYPE sflight-connid.
+
+SELECTION-SCREEN END OF SCREEN 101.
+
+
+SELECTION-SCREEN BEGIN OF SCREEN 102 AS SUBSCREEN.
+
+  SELECT-OPTIONS:
+    so_date FOR sflight-fldate.
+
+SELECTION-SCREEN END OF SCREEN 102.
+
+SELECTION-SCREEN: BEGIN OF TABBED BLOCK mytab FOR 5 LINES,
+TAB (20) tabname1 USER-COMMAND tab1,
+TAB (20) tabname2 USER-COMMAND tab2,
+END OF BLOCK mytab.
+
+
+
+
+
+INITIALIZATION.
+  BREAK-POINT.
+  tabname1 = 'Ariline ID'.
+  tabname2 = 'Flight Date'.
+  mytab-prog = sy-repid.
+  mytab-dynnr = 101.
+  mytab-activetab = 'TAB1'.
+
+AT SELECTION-SCREEN.
+  BREAK-POINT.
+  CASE sy-dynnr.
+    WHEN 1000.
+      CASE sy-ucomm.
+        WHEN 'TAB1'.
+          mytab-dynnr = 101.
+        WHEN 'TAB2'.
+          mytab-dynnr = 102.
+      ENDCASE.
+  ENDCASE.
+
+START-OF-SELECTION.
+  BREAK-POINT.
+  CASE mytab-activetab.
+    WHEN 'TAB1'.
+      WRITE:
+        pa_id,
+        pa_con.
+    WHEN 'TAB2'.
+      WRITE:
+        so_date-low,
+        so_date-high.
+<font color ="#0000FF">*      MESSAGE s006(bc405) DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*      gv_chk  = 'X'.</font>
+      LEAVE LIST-PROCESSING.
+  ENDCASE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

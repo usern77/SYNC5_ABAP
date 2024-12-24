@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_TAB_CONTROL_RADIO_O01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_TAB_CONTROL_RADIO_O01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_TAB_CONTROL_RADIO_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZLKW_TAB_CONTROL_RADIO_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0100 OUTPUT.
+  SET PF-STATUS 'S0100'.
+  SET TITLEBAR  'T0100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module PRESSED_TAB_ACTIVE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE pressed_tab_active OUTPUT.
+
+  go_main_tab-activetab = gv_pressedtab.
+
+  CASE gv_pressedtab.
+    WHEN 'SCARR'.
+      gv_subscreen = '0101'.
+
+    WHEN 'SPFLI'.
+      gv_subscreen = '0102'.
+
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module SET_FCAT_LAYOUT OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE set_fcat_layout OUTPUT.
+
+  gs_layout-zebra      = 'X'.
+  gs_layout-cwidth_opt = 'A'.
+  gs_layout-sel_mode   = 'D'.
+
+  PERFORM set_fcat.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CREATE_OBJECT OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE create_object OUTPUT.
+
+  IF gcl_container_1 IS NOT BOUND.
+
+    CREATE OBJECT gcl_container_1
+      EXPORTING
+        container_name = 'GCL_CONTAINER_1'.
+
+    CREATE OBJECT gcl_grid_1
+      EXPORTING
+        i_parent = gcl_container_1.
+
+    CREATE OBJECT gcl_container_2
+      EXPORTING
+        container_name = 'GCL_CONTAINER_2'.
+
+    CREATE OBJECT gcl_grid_2
+      EXPORTING
+        i_parent = gcl_container_2.
+
+    gs_variant-report  = sy-repid.
+    gs_variant-handle = 'TAB1'.
+
+    CALL METHOD gcl_grid_1-&gt;set_table_for_first_display
+      EXPORTING
+        is_variant      = gs_variant
+        i_save          = 'A'
+        i_default       = 'X'
+        is_layout       = gs_layout
+      CHANGING
+        it_outtab       = gt_scarr
+        it_fieldcatalog = gt_fcat_1.
+
+    gs_variant-handle = 'TAB2'.
+
+    CALL METHOD gcl_grid_2-&gt;set_table_for_first_display
+      EXPORTING
+        is_variant      = gs_variant
+        i_save          = 'A'
+        i_default       = 'X'
+        is_layout       = gs_layout
+      CHANGING
+        it_outtab       = gt_spfli
+        it_fieldcatalog = gt_fcat_2.
+
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module MODIFY_SCREEN OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE modify_screen OUTPUT.
+
+<font color ="#0000FF">*  PERFORM modify_screen.</font>
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

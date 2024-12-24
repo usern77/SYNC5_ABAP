@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZTREEC01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZTREEC01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZTREEC01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZTREEC01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&       Class LCL_TREE_EVENT_HANDLER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*        Text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+CLASS lcl_tree_event_handler DEFINITION.
+
+  PUBLIC SECTION.
+    CLASS-METHODS: handle_node_double_click FOR EVENT node_double_click
+                                            OF cl_gui_simple_tree
+                                            IMPORTING node_key.
+
+ENDCLASS.               "LCL_TREE_EVENT_HANDLER
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&       Class (Implementation)  lcl_tree_event_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*        Text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+CLASS lcl_tree_event_handler IMPLEMENTATION.
+
+  METHOD handle_node_double_click.
+
+    PERFORM search_clicked_node_info USING node_key.
+
+    IF lines( gt_sflight ) GT 0.
+      CALL METHOD go_alv_grid-&gt;refresh_table_display.
+    ELSE.
+      MESSAGE i001 WITH TEXT-e01.
+    ENDIF.
+
+  ENDMETHOD.                    "handle_node_double_click
+
+ENDCLASS.               "lcl_tree_event_handler
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

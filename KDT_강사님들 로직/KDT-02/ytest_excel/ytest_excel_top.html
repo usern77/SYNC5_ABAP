@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>YTEST_EXCEL_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: YTEST_EXCEL_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZTEST14_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZTEST14_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* OLE</font>
+TYPE-POOLS: OLE2.
+
+<font color ="#0000FF">* FUNCTION CODE</font>
+  TABLES: SSCRFIELDS.
+  DATA: G_FUNCTION_KEY TYPE SMP_DYNTXT.
+
+<font color ="#0000FF">* EXCEL DOWN: DIRECTORY, SMW0</font>
+  DATA: GV_DIRECTORY     TYPE STRING,
+        GV_INITIAL_DIR   TYPE STRING,
+        GV_FILE          LIKE RLGRAP-FILENAME,
+        OBJFILE          TYPE REF TO CL_GUI_FRONTEND_SERVICES.
+
+<font color ="#0000FF">* EXCEL DOWN: OLE</font>
+  DATA: LS_KEY LIKE WWWDATATAB.
+  DATA: GO_APPLICATION  TYPE OLE2_OBJECT,
+        GO_BOOKS        TYPE OLE2_OBJECT,
+        GO_WBOOK        TYPE OLE2_OBJECT,
+        GO_BOOK         TYPE OLE2_OBJECT,
+        GO_SHEETS       TYPE OLE2_OBJECT,
+        GO_SHEET        TYPE OLE2_OBJECT,
+        GO_CELLS        TYPE OLE2_OBJECT,
+        GO_CELL         TYPE OLE2_OBJECT,
+        GO_RANGE        TYPE OLE2_OBJECT,
+        GO_FONT         TYPE OLE2_OBJECT,
+        GO_ROW          TYPE OLE2_OBJECT,
+        GV_PATH         TYPE STRING,
+        GV_NUM          TYPE I.
+
+
+DATA: BEGIN OF GS_ZSC,
+        ZSTATUS   TYPE ICON-ID,
+        MANDT      TYPE ZSCARR-MANDT,
+        CARRID      TYPE ZSCARR-CARRID,
+        CARRNAME     TYPE ZSCARR-CARRNAME,
+        CURRCODE    TYPE ZSCARR-CURRCODE,
+        URL    TYPE ZSCARR-URL,
+        ZRESULT   TYPE CHAR200,
+      END OF GS_ZSC.
+DATA: BEGIN OF GS_EXCEL,
+        MANDT      TYPE ZSCARR-MANDT,
+        CARRID      TYPE ZSCARR-CARRID,
+        CARRNAME     TYPE ZSCARR-CARRNAME,
+        CURRCODE    TYPE ZSCARR-CURRCODE,
+        URL    TYPE ZSCARR-URL,
+      END OF GS_EXCEL.
+DATA: GT_ZSC     LIKE TABLE OF GS_ZSC,
+      GT_EXCEL LIKE TABLE OF GS_EXCEL.
+
+<font color ="#0000FF">* 엑셀 업로드</font>
+
+FIELD-SYMBOLS : &lt;gt_data&gt;       TYPE STANDARD TABLE .
+
+
+<font color ="#0000FF">* DB 데이터</font>
+<font color ="#0000FF">*DATA: GT_DOMAIN   TYPE TABLE OF DD07T.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*DATA: GS_DOMAIN     LIKE LINE OF  GT_DOMAIN.</font>
+DATA: GT_ZSCARR TYPE TABLE OF ZSCARR,
+      GS_ZSCARR TYPE          ZSCARR.
+
+<font color ="#0000FF">* 데이터 저장</font>
+<font color ="#0000FF">*DATA: LT_ROW TYPE LVC_T_ROID,</font>
+<font color ="#0000FF">*      LS_ROW TYPE LVC_S_ROID.</font>
+
+<font color ="#0000FF">* 기타</font>
+DATA: OK_CODE   TYPE SY-UCOMM,
+      GV_TITLE  TYPE SY-TITLE.
+
+<font color ="#0000FF">* ALV 관련</font>
+<font color ="#0000FF">*DATA: GO_DOCKING TYPE REF TO CL_GUI_DOCKING_CONTAINER,</font>
+DATA : GO_CUSTOM TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_GRID    TYPE REF TO CL_GUI_ALV_GRID.
+DATA : GT_FCAT   TYPE LVC_T_FCAT,
+       GS_FCAT   TYPE LVC_S_FCAT,
+       GS_LAYOUT TYPE LVC_S_LAYO.
+<font color ="#0000FF">*툴바 관련</font>
+DATA: fcode    TYPE TABLE OF sy-ucomm,
+      wa_fcode TYPE sy-ucomm.
+
+DATA: it_zscarrcp TYPE TABLE OF ZSCARR WITH HEADER LINE,
+      it_changes  TYPE TABLE OF ZSCARR WITH HEADER LINE,
+      it_deletes  TYPE TABLE OF ZSCARR WITH HEADER LINE.
+
+<font color ="#0000FF">** CLASS *</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*CLASS lcl_event_receiver DEFINITION DEFERRED.</font>
+<font color ="#0000FF">*DATA: g_event_receiver TYPE REF TO lcl_event_receiver.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**--------------------------------------------------</font>
+<font color ="#0000FF">** 클래스 선언</font>
+<font color ="#0000FF">**-------------------------------------------------</font>
+<font color ="#0000FF">*CLASS lcl_event_receiver DEFINITION.</font>
+<font color ="#0000FF">*PUBLIC SECTION.</font>
+<font color ="#0000FF">*METHODS : handle_double_click</font>
+<font color ="#0000FF">*FOR EVENT double_click OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*IMPORTING e_row</font>
+<font color ="#0000FF">*e_column.</font>
+<font color ="#0000FF">*ENDCLASS.</font>
+<font color ="#0000FF">**--------------------------------------------</font>
+<font color ="#0000FF">** 클래스 구현</font>
+<font color ="#0000FF">**--------------------------------------------</font>
+<font color ="#0000FF">*CLASS lcl_event_receiver IMPLEMENTATION.</font>
+<font color ="#0000FF">*METHOD handle_double_click.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 내가 선택하는 alv .... line</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*IF r1 ='X'.</font>
+<font color ="#0000FF">*  DATA: tmp_GT_ZSC LIKE LINE OF GT_ZSC.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  READ TABLE GT_ZSC INDEX e_row-index INTO tmp_GT_ZSC.</font>
+<font color ="#0000FF">*ELSEIF r2 ='X'.</font>
+<font color ="#0000FF">*  DATA: tmp_GT_ZSC LIKE LINE OF GT_ZSCARR.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  READ TABLE GT_ZSCARR INDEX e_row-index INTO tmp_GT_ZSC.</font>
+<font color ="#0000FF">*ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*set PARAMETER ID 'DTB' FIELD tmp_GT_ZSC-carrid.</font>
+<font color ="#0000FF">*call TRANSACTION 'SE11' WITHOUT AUTHORITY-CHECK.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*ENDMETHOD.</font>
+<font color ="#0000FF">*ENDCLASS.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD24_MM090_S01_C</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD24_MM090_S01_C</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD24_MM090_S01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD24_MM090_S01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& SELECTION SCREEN</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*- subscreen</font>
+" sub1 - 조회 (자재마스터 조회)
+SELECTION-SCREEN BEGIN OF SCREEN 1100 AS SUBSCREEN.
+  SELECTION-SCREEN BEGIN OF BLOCK b1  WITH FRAME TITLE TEXT-t01 .
+
+    SELECT-OPTIONS : so_mnr FOR zdct_mm001-matnr." NO INTERVALS NO-EXTENSION.
+
+
+    SELECTION-SCREEN BEGIN OF LINE.
+
+      SELECTION-SCREEN COMMENT (31) TEXT-t02. "텍스트
+
+      PARAMETERS : pa_con1 RADIOBUTTON GROUP r1 DEFAULT 'X'.
+      SELECTION-SCREEN COMMENT (10) FOR FIELD pa_con1.  "라인으로 정렬하면 체크박스 텍스트가 사라지는 문제 해결
+
+      PARAMETERS : pa_con2 RADIOBUTTON GROUP r1.
+      SELECTION-SCREEN COMMENT (5) FOR FIELD pa_con2.
+
+      PARAMETERS : pa_con3 RADIOBUTTON GROUP r1.
+      SELECTION-SCREEN COMMENT (5) FOR FIELD pa_con3.
+
+      PARAMETERS : pa_con4 RADIOBUTTON GROUP r1.
+      SELECTION-SCREEN COMMENT (5) FOR FIELD pa_con4.
+
+    SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN END OF BLOCK b1.
+SELECTION-SCREEN END OF SCREEN 1100.
+
+" sub2 - 생성 (EXCEL) (자재 다중 생성 경로 입력)
+SELECTION-SCREEN BEGIN OF SCREEN 1200 AS SUBSCREEN.
+  SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE TEXT-b02.
+    PARAMETERS: pa_excel TYPE rlgrap-filename DEFAULT 'C:\' OBLIGATORY.
+    SELECTION-SCREEN SKIP 1.
+    "엑셀 다운로드 사용 방법
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-001.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-002.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-003.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-004.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-005.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-006.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-007.
+    SELECTION-SCREEN SKIP 1.
+    SELECTION-SCREEN COMMENT 1(70) TEXT-008.
+  SELECTION-SCREEN END OF BLOCK b2.
+SELECTION-SCREEN END OF SCREEN 1200.
+
+SELECTION-SCREEN FUNCTION KEY 1.
+
+
+<font color ="#0000FF">*- tabstrip</font>
+SELECTION-SCREEN BEGIN OF TABBED BLOCK tabstrip FOR 20 LINES.
+
+  SELECTION-SCREEN TAB (20) tab1 USER-COMMAND display DEFAULT SCREEN 1100.
+  SELECTION-SCREEN TAB (20) tab2 USER-COMMAND create  DEFAULT SCREEN 1200.
+
+SELECTION-SCREEN END OF BLOCK tabstrip.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

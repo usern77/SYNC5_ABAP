@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_GOS_FILE_UPLOAD_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_GOS_FILE_UPLOAD_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_GOS_FILE_UPLOAD_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZLKW_GOS_FILE_UPLOAD_TOP                 - Report ZLKW_GOS_FILE_UPLOAD</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zlkw_gos_file_upload MESSAGE-ID oo.
+
+TABLES : ekko.
+
+CONSTANTS : gc_typeid TYPE srgbtbrel-typeid_a VALUE 'ZC101MM', "임의로 모듈별로 정한다
+            gc_catid  TYPE srgbtbrel-catid_a  VALUE 'BO'.
+
+DATA : BEGIN OF gs_list,
+         ebeln   TYPE ekko-ebeln,
+         ebelp   TYPE ekpo-ebelp,
+         bsart   TYPE ekko-bsart,
+         bstyp   TYPE ekko-bstyp,
+         bukrs   TYPE ekpo-bukrs,
+         werks   TYPE ekpo-werks,
+         lgort   TYPE ekpo-lgort,
+         matnr   TYPE ekpo-matnr,
+         menge   TYPE ekpo-menge,
+         meins   TYPE ekpo-meins,
+         attache TYPE icon_d,               "파일 업로드 유무
+       END OF gs_list,
+
+       gt_list LIKE TABLE OF gs_list.
+
+<font color ="#0000FF">* ALV 관련</font>
+DATA : gcl_container TYPE REF TO cl_gui_docking_container,
+       gcl_grid      TYPE REF TO cl_gui_alv_grid,
+       gs_fcat       TYPE lvc_s_fcat,
+       gt_fcat       TYPE lvc_t_fcat,
+       gs_layout     TYPE lvc_s_layo,
+       gs_stable     TYPE lvc_s_stbl,
+       gs_variant    TYPE disvariant.
+
+DATA : gv_okcode TYPE sy-ucomm.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

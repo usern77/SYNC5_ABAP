@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZTEXT_EDIT_COOTOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZTEXT_EDIT_COOTOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZTEXT_EDIT_COOTOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include MZTEXT_EDIT_COOTOP                       - Module Pool      SAPMZTEXT_EDIT_COO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM SAPMZTEXT_EDIT_COO.
+
+TABLES: ZSFLIGHT_C00.
+
+DATA: OK_CODE TYPE SY-UCOMM,
+      GV_MODE TYPE SY-UCOMM.
+
+DATA: GT_DATA TYPE TABLE OF ZSFLIGHT_C00,
+      GS_DATA LIKE LINE OF GT_DATA.
+
+DATA: GT_FCAT TYPE LVC_T_FCAT.
+
+DATA: GO_CONT1 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_CONT2 TYPE REF TO CL_GUI_CUSTOM_CONTAINER.
+
+DATA: GO_ALV  TYPE REF TO CL_GUI_ALV_GRID,
+      GO_TEXT TYPE REF TO CL_GUI_TEXTEDIT.
+
+START-OF-SELECTION.
+
+  CALL SCREEN 100.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZALV_TREEF01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZALV_TREEF01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZALV_TREEF01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZALV_TREEF01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form change</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_2</font>
+<font color ="#0000FF">*&      --&gt; CL_GUI_COLUMN_TREE=&gt;STYLE_EMPH</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM change  USING type  TYPE i
+                   value TYPE i.
+
+  DATA: lt_selected_nodes   TYPE lvc_t_nkey,
+        ls_selected_node    TYPE lvc_nkey,
+        lt_item_layout      TYPE lvc_t_layi,
+        ls_item_layout_wa   TYPE lvc_s_layi,
+        lt_change_layout    TYPE lvc_t_laci,
+        ls_change_layout_wa TYPE lvc_s_laci,
+        l_fieldname         TYPE lvc_fname,
+        ls_outtab           TYPE sflight.
+
+  CALL METHOD go_tree-&gt;get_selected_nodes
+    CHANGING
+      ct_selected_nodes = lt_selected_nodes.
+
+  IF lt_selected_nodes IS INITIAL.
+    CALL METHOD go_tree-&gt;get_selected_item
+      IMPORTING
+        e_selected_node = ls_selected_node
+        e_fieldname     = l_fieldname.
+    APPEND ls_selected_node TO lt_selected_nodes.
+  ENDIF.
+
+  LOOP AT lt_selected_nodes INTO ls_selected_node.
+    CALL METHOD go_tree-&gt;get_outtab_line
+      EXPORTING
+        i_node_key     = ls_selected_node
+      IMPORTING
+        e_outtab_line  = ls_outtab
+        et_item_layout = lt_item_layout.
+
+    CLEAR lt_change_layout.
+    LOOP AT lt_item_layout INTO ls_item_layout_wa.
+      IF l_fieldname IS INITIAL OR
+         ls_item_layout_wa-fieldname EQ l_fieldname.
+
+        MOVE-CORRESPONDING ls_item_layout_wa TO ls_change_layout_wa.
+
+        CASE type.
+          WHEN 0.
+            ls_change_layout_wa-class = value.
+            ls_change_layout_wa-u_class = 'X'.
+            IF value EQ cl_gui_column_tree=&gt;item_class_checkbox.
+              ls_change_layout_wa-editable = 'X'.
+            ELSE.
+              ls_change_layout_wa-editable = space.
+            ENDIF.
+            ls_change_layout_wa-u_editable = 'X'.
+          WHEN 1.
+            ls_change_layout_wa-font = value.
+            ls_change_layout_wa-u_font = 'X'.
+          WHEN 2.
+            ls_change_layout_wa-style = value.
+            ls_change_layout_wa-u_style = 'X'.
+          WHEN 3.
+            IF value EQ 0.
+              ls_change_layout_wa-t_image = icon_okay.
+            ELSE.
+              ls_change_layout_wa-t_image = space.
+            ENDIF.
+
+            ls_change_layout_wa-u_t_image = 'X'.
+        ENDCASE.
+        APPEND ls_change_layout_wa TO lt_change_layout.
+      ENDIF.
+    ENDLOOP.
+
+    CALL METHOD go_tree-&gt;change_node
+      EXPORTING
+        i_node_key     = ls_selected_node
+        i_outtab_line  = ls_outtab
+        it_item_layout = lt_change_layout.
+
+  ENDLOOP.
+
+  CALL METHOD go_tree-&gt;frontend_update.
+  CALL METHOD cl_gui_cfw=&gt;flush.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_base_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_base_data .
+
+  CLEAR gt_partner.
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE gt_partner
+    FROM but000
+    WHERE partner IN so_bp.
+
+  IF gt_partner IS INITIAL.
+    MESSAGE s037 DISPLAY LIKE 'E'.
+    STOP.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form init_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM init_tree .
+
+  CREATE OBJECT go_container
+    EXPORTING
+      repid     = sy-repid
+      dynnr     = sy-dynnr
+      side      = go_container-&gt;dock_at_left
+      extension = 5000.
+
+  CREATE OBJECT go_tree
+    EXPORTING
+      parent              = go_container
+      node_selection_mode = cl_gui_column_tree=&gt;node_sel_mode_multiple
+      item_selection      = 'X'
+      no_html_header      = pa_check.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form define_hierarchy_header</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GS_HIERHDR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM define_hierarchy_header  CHANGING pv_hierhdr TYPE treev_hhdr.
+
+  pv_hierhdr-heading = 'Treasure partner group'.
+  pv_hierhdr-tooltip = 'Treasure partner group'.
+  pv_hierhdr-width = 35.
+  pv_hierhdr-width_pix = space.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form build_comment</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GT_LIST_COMMENTARY</font>
+<font color ="#0000FF">*&      --&gt; GV_LOGO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM build_comment  USING pt_list_commentary TYPE slis_t_listheader.
+
+  DATA: ls_line TYPE slis_listheader.
+
+  CLEAR ls_line.
+  ls_line-typ = 'H'. " High font
+  ls_line-info = 'ALV Tree sample program : Partner info'.
+  APPEND ls_line TO pt_list_commentary.
+
+  CLEAR ls_line.
+  ls_line-typ = 'S'. " Small font
+  ls_line-key = 'Current date : '.
+  ls_line-info = sy-datum.
+  APPEND ls_line TO pt_list_commentary.
+
+  CLEAR ls_line.
+  ls_line-typ = 'S'.
+  ls_line-key = 'Current time : '.
+  ls_line-info = sy-uzeit.
+  APPEND ls_line TO pt_list_commentary.
+
+  CLEAR ls_line.
+  ls_line-typ = 'A'. " Italic font
+  ls_line-info = 'SYNC-5 Class 3'.
+  APPEND ls_line TO pt_list_commentary.
+
+  gs_variant-report = sy-repid.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form define_field_catalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM define_field_catalog .
+
+  CLEAR : gt_fcat, gs_fcat.
+  PERFORM set_field_catalog USING : 'BU_GROUP'   'Group'  'X',
+                                    'NAME_ORG1'  'Name'   'X',
+                                    'CRUSR'      'Crusr'  ' ',
+                                    'CRDAT'      'Date'   ' ',
+                                    'CHUSR'      'Chusr'  ' ',
+                                    'TD_SWITCH'  'Switch' ' '.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_catalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_catalog  USING pv_field pv_text pv_noout.
+
+  gs_fcat-fieldname = pv_field.
+  gs_fcat-coltext   = pv_text.
+  gs_fcat-no_out    = pv_noout.
+
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_hierarchy</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_hierarchy .
+
+  CALL METHOD go_tree-&gt;set_table_for_first_display
+    EXPORTING
+      is_variant          = gs_variant
+      i_save              = 'A'
+      i_default           = 'X'
+      is_hierarchy_header = gs_hierhdr
+      it_list_commentary  = gt_list_commentary
+<font color ="#0000FF">*     i_logo              = gv_logo</font>
+      i_background_id     = 'SIWB_WALLPAPER'  " 'TRVPICTURE18'
+    CHANGING
+      it_outtab           = gt_outtab
+      it_fieldcatalog     = gt_fcat.
+
+<font color ="#0000FF">*--register item_cxt_menu_request------------------------------------*.</font>
+<font color ="#0000FF">*  SET HANDLER : lcl_event_handler=&gt;on_item_cxt_menu_request  FOR go_tree,</font>
+<font color ="#0000FF">*                lcl_event_handler=&gt;on_item_cxt_menu_selected FOR go_tree.</font>
+
+  CALL METHOD go_tree-&gt;get_registered_events
+    IMPORTING
+      events = gt_events.
+
+  gs_event-eventid = cl_gui_column_tree=&gt;eventid_item_context_menu_req.
+  APPEND gs_event TO gt_events.
+
+  CALL METHOD go_tree-&gt;set_registered_events
+    EXPORTING
+      events = gt_events.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form fill_column_tree</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM fill_column_tree .
+
+  DATA: lv_node_text    TYPE lvc_value,
+        lv_bu_group_key TYPE lvc_nkey,
+        lv_root_key     TYPE lvc_nkey,
+        lv_partner_key  TYPE lvc_nkey,
+        lt_layout_item  TYPE lvc_t_layi,
+        ls_layout       TYPE lvc_s_layn.
+
+  DATA : lt_node_key  TYPE lvc_t_nkey.
+
+  SORT gt_partner BY bu_group.
+
+  LOOP AT gt_partner INTO gs_partner.
+
+    ON CHANGE OF gs_partner-bu_group.
+      CLEAR ls_layout.
+<font color ="#0000FF">*-- 하위에 Level 정보가 더 있다면 Folder 속성 적용 ------------------*</font>
+      ls_layout-isfolder = 'X'.
+      ls_layout-n_image  = '@06@'.
+      ls_layout-exp_image = '@07@'.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+      lv_node_text = gs_partner-bu_group.
+
+      CALL METHOD go_tree-&gt;add_node
+        EXPORTING
+          i_relat_node_key = lv_root_key
+          i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+          i_node_text      = lv_node_text
+          is_node_layout   = ls_layout
+          is_outtab_line   = gs_partner
+        IMPORTING
+          e_new_node_key   = lv_bu_group_key.
+
+<font color ="#0000FF">*      CALL METHOD go_tree-&gt;expand_node</font>
+<font color ="#0000FF">*        EXPORTING</font>
+<font color ="#0000FF">*          i_node_key = 'T'.</font>
+
+    ENDON.
+
+    PERFORM create_item_layouts CHANGING lt_layout_item.
+
+<font color ="#0000FF">*-- 최하위 노드</font>
+    lv_node_text = gs_partner-name_org1.
+    CALL METHOD go_tree-&gt;add_node
+      EXPORTING
+        i_relat_node_key = lv_bu_group_key
+        i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+        i_node_text      = lv_node_text
+        is_outtab_line   = gs_partner
+      IMPORTING
+        e_new_node_key   = lv_partner_key.
+
+    PERFORM create_item_layouts CHANGING lt_layout_item.
+
+  ENDLOOP.
+
+  CALL METHOD : go_tree-&gt;update_calculations,
+                go_tree-&gt;frontend_update,
+                cl_gui_cfw=&gt;flush.
+
+<font color ="#0000FF">*  APPEND lv_root_key TO lt_node_key.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CALL METHOD go_tree-&gt;expand_nodes</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      it_node_key             = lt_node_key</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      failed                  = 1</font>
+<font color ="#0000FF">*      cntl_system_error       = 2</font>
+<font color ="#0000FF">*      error_in_node_key_table = 3</font>
+<font color ="#0000FF">*      dp_error                = 4</font>
+<font color ="#0000FF">*      node_not_found          = 5</font>
+<font color ="#0000FF">*      OTHERS                  = 6.</font>
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_item_layouts</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- LT_LAYOUT_ITEM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_item_layouts  CHANGING pt_item_layout TYPE lvc_t_layi.
+
+  DATA: ls_item_layout TYPE lvc_s_layi.
+
+  CLEAR pt_item_layout.
+  LOOP AT gt_fcat INTO gs_fcat.
+    CLEAR ls_item_layout.
+    IF gs_fcat-no_out EQ space.
+      ls_item_layout-fieldname = gs_fcat-fieldname.
+      APPEND ls_item_layout TO pt_item_layout.
+    ENDIF.
+  ENDLOOP.
+
+  CLEAR ls_item_layout.
+  ls_item_layout-fieldname = go_tree-&gt;c_hierarchy_column_name.
+  APPEND ls_item_layout TO pt_item_layout.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

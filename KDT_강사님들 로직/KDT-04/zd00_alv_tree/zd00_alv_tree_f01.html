@@ -1,0 +1,539 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_ALV_TREE_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_ALV_TREE_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_ALV_TREE_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_ALV_TREE_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  CREATE_TREE_CONTROL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_tree_control.
+
+<font color ="#0000FF">* alv-tree에 대한 container 생성</font>
+  CREATE OBJECT go_dock
+    EXPORTING
+      side      = cl_gui_docking_container=&gt;dock_at_left "왼쪽으로부터
+      extension = 1000
+      repid     = sy-repid
+      dynnr     = '0100'.
+
+<font color ="#0000FF">* tree control 생성</font>
+  CREATE OBJECT go_tree1
+    EXPORTING
+      parent                      = go_dock
+      node_selection_mode         = cl_gui_column_tree=&gt;node_sel_mode_single
+      item_selection              = ''
+      no_html_header              = ''
+      no_toolbar                  = ''
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      illegal_node_selection_mode = 5
+      failed                      = 6
+      illegal_column_name         = 7.
+
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*</font>
+  ENDIF.
+
+<font color ="#0000FF">* tree에 표현할 필드 카탈로그 셋팅</font>
+  PERFORM set_fieldcat.
+
+<font color ="#0000FF">* TOP of Page</font>
+  PERFORM create_tree_header.
+
+<font color ="#0000FF">* 헤더</font>
+  PERFORM build_hierarchy_header.
+
+<font color ="#0000FF">* create empty tree-control</font>
+  CALL METHOD go_tree1-&gt;set_table_for_first_display
+    EXPORTING
+      i_structure_name    = 'SPFLI'
+      is_hierarchy_header = gs_hierarchy_header
+      i_background_id     = 'ALV_BACKGROUND'
+      it_list_commentary  = gt_header[]  " Top of page
+    CHANGING
+      it_outtab           = gt_spfli     "empty table !! 트리는 데이터를 나중에 select한다.
+      it_fieldcatalog     = gt_fcat.
+
+<font color ="#0000FF">* 계층 생성</font>
+  PERFORM create_hierarchy.
+
+<font color ="#0000FF">* 이벤트 등록</font>
+  PERFORM register_events.
+
+<font color ="#0000FF">* tree1에 대한 이벤트 핸들러 설정</font>
+<font color ="#0000FF">* create Event Receiver</font>
+  CREATE OBJECT go_tree_handler.
+  SET HANDLER go_tree_handler-&gt;handle_double_click FOR go_tree1.
+
+<font color ="#0000FF">* 데이터를 화면에 보내기 위한 메소드</font>
+  CALL METHOD go_tree1-&gt;frontend_update.
+
+ENDFORM.                               " CREATE_TREE_CONTROL
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  DISPLAY_FLIGHTS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_flights USING p_node_key TYPE lvc_nkey.
+
+  DATA : ls_spfli    TYPE spfli,
+         lt_children TYPE lvc_t_nkey WITH HEADER LINE. "ALV Tree Control: Node Table
+
+  REFRESH gt_sflight.
+
+  "Get Data From Model
+  CALL METHOD go_tree1-&gt;get_outtab_line
+    EXPORTING
+      i_node_key    = p_node_key  "내가 클릭한 노드 번호
+    IMPORTING
+      e_outtab_line = ls_spfli.
+
+  IF ls_spfli IS INITIAL.   " 부모 노드 선택 시에는 ls_spfli 가 반환되지 않는다.
+
+    " 자식 노드 반환
+    CALL METHOD go_tree1-&gt;get_children
+      EXPORTING
+        i_node_key  = p_node_key
+      IMPORTING
+        et_children = lt_children[].
+
+    CHECK NOT lt_children[] IS INITIAL.
+
+    LOOP AT lt_children.
+
+      CALL METHOD go_tree1-&gt;get_outtab_line
+        EXPORTING
+          i_node_key    = lt_children
+        IMPORTING
+          e_outtab_line = ls_spfli.
+
+      " 해당 자식 노드의 sflight 정보를 찾아 적재한다. APPENDING!!
+      SELECT * FROM sflight APPENDING TABLE gt_sflight
+              WHERE carrid = ls_spfli-carrid
+                AND connid = ls_spfli-connid.
+
+      READ TABLE gt_scarr INTO gs_scarr WITH KEY carrid = ls_spfli-carrid.
+
+      scarr = gs_scarr.
+
+    ENDLOOP.
+
+  ELSE.  " 자식 노드 선택 시
+
+    " 선택된 자식 노드에 한해 sflight 정보를 찾는다.
+    SELECT * FROM sflight INTO TABLE gt_sflight
+            WHERE carrid = ls_spfli-carrid
+              AND connid = ls_spfli-connid.
+
+    READ TABLE gt_scarr INTO gs_scarr WITH KEY carrid = ls_spfli-carrid.
+
+    scarr = gs_scarr.
+
+  ENDIF.
+
+  IF gt_sflight IS INITIAL.
+    MESSAGE i000(0k) WITH TEXT-115 space space space.
+    CLEAR scarr.
+  ELSE.
+    gv_flag = gc_x.   "자식 노드로부터 sflight 검색되면 플래그 표시
+  ENDIF.
+
+ENDFORM.                               " DISPLAY_FLIGHTS
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  DISPLAY_DETAIL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_detail.
+
+  CLEAR sflight.
+
+  CALL METHOD go_grid-&gt;get_selected_rows
+    IMPORTING
+      et_index_rows = gt_row_table[].
+
+<font color ="#0000FF">* only one selected row!</font>
+  READ TABLE gt_row_table INDEX 1.
+
+  IF sy-subrc = 0.
+    READ TABLE gt_sflight INTO gs_sflight INDEX gt_row_table-index.
+    IF sy-subrc = 0.
+      MOVE-CORRESPONDING gs_sflight TO sflight.
+<font color ="#0000FF">*     Detail screen 200</font>
+      CALL SCREEN 200 STARTING AT 10 10.
+    ENDIF.
+  ELSE.
+    MESSAGE i000(0k) WITH TEXT-054 space space space.
+  ENDIF.
+
+ENDFORM.                               " DISPLAY_DETAIL
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  DISPLAY_SAPLANE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_saplane.
+
+  CLEAR saplane.
+
+  CLEAR gt_row_table[].
+
+  CALL METHOD go_grid-&gt;get_selected_rows
+    IMPORTING
+      et_index_rows = gt_row_table[].
+
+  CALL METHOD cl_gui_cfw=&gt;flush.
+
+<font color ="#0000FF">* only one selected row!</font>
+  READ TABLE gt_row_table INDEX 1.
+
+  IF sy-subrc = 0.
+    READ TABLE gt_sflight INTO gs_sflight INDEX gt_row_table-index.
+
+    IF sy-subrc = 0.
+      READ TABLE gt_saplane INTO gs_saplane
+                        WITH KEY planetype = gs_sflight-planetype.
+      IF sy-subrc = 0.
+        saplane = gs_saplane.
+      ELSE.
+        SELECT SINGLE * FROM saplane
+                       WHERE planetype = gs_sflight-planetype.
+        IF sy-subrc = 0.
+          gs_saplane = saplane.
+          APPEND gs_saplane TO gt_saplane.
+        ELSE.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ELSE.
+    MESSAGE i000(0k) WITH TEXT-054 space space space.
+  ENDIF.
+
+ENDFORM.                               " DISPLAY_SAPLANE
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  CREATE_TREE_HEADER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_tree_header.
+
+  CLEAR gt_header.
+  gt_header-typ  = 'H'.
+  gt_header-info = TEXT-007.
+  APPEND gt_header.
+
+  CLEAR gt_header.
+  gt_header-typ  = 'S'.
+  gt_header-key  = TEXT-008.
+  gt_header-info = TEXT-009.
+  APPEND gt_header.
+
+ENDFORM.                               " CREATE_TREE_HEADER
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  REGISTER_EVENTS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM register_events.
+
+  DATA : lt_events TYPE cntl_simple_events,
+         l_event   TYPE cntl_simple_event.
+
+<font color ="#0000FF">* 백엔드에 전달될 활용할 메소드 정의</font>
+
+  " 노드 더블클릭
+  CLEAR l_event.
+  l_event-eventid = cl_gui_column_tree=&gt;eventid_node_double_click.
+  l_event-appl_event = gc_x.
+  APPEND l_event TO lt_events.
+
+  " 확장 노드 누르면 펼치기
+  CLEAR l_event.
+  l_event-eventid = cl_gui_column_tree=&gt;eventid_expand_no_children.
+  APPEND l_event TO lt_events.
+
+  " 컬럼 헤드 클릭
+  CLEAR l_event.
+  l_event-eventid = cl_gui_column_tree=&gt;eventid_header_click.
+  APPEND l_event TO lt_events.
+
+  CLEAR l_event.
+
+<font color ="#0000FF">* register events</font>
+  CALL METHOD go_tree1-&gt;set_registered_events
+    EXPORTING
+      events                    = lt_events
+    EXCEPTIONS
+      cntl_error                = 1
+      cntl_system_error         = 2
+      illegal_event_combination = 3.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE x534(0k).
+  ENDIF.
+
+ENDFORM.                               " REGISTER_EVENTS
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  build_hierarchy_header</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM build_hierarchy_header.
+
+  CLEAR gs_hierarchy_header.
+  gs_hierarchy_header-heading   = TEXT-010.
+  gs_hierarchy_header-tooltip   = TEXT-011.
+  gs_hierarchy_header-width     = 30.
+  gs_hierarchy_header-width_pix = ' '.
+
+ENDFORM.                               " build_hierarchy_header
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  create_hierarchy</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_hierarchy.
+
+  DATA : lv_carrid_key TYPE lvc_nkey,  "ALV Tree Control: Node Key
+         lv_last_key   TYPE lvc_nkey.
+
+<font color ="#0000FF">* add data to tree</font>
+  LOOP AT gt_db_spfli INTO gs_db_spfli.
+
+    ON CHANGE OF gs_db_spfli-carrid. "필드의 값이 변경되었을 때 로직을 탄다.
+
+      " 자식 노드의 정보를 조회
+      PERFORM add_carrid_line USING gs_db_spfli
+                                    ''
+                           CHANGING lv_carrid_key.
+    ENDON.
+
+    PERFORM add_complete_line USING  gs_db_spfli
+                                     lv_carrid_key
+                            CHANGING lv_last_key.
+  ENDLOOP.
+
+ENDFORM.                               " create_hierarchy
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  ADD_CARRID_LINE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_carrid_line USING    ps_spfli TYPE spfli
+                              p_relat_key TYPE lvc_nkey
+                     CHANGING p_node_key TYPE lvc_nkey.
+
+  DATA : l_node_text TYPE lvc_value,
+         ls_spfli    TYPE spfli.
+
+  DATA : lt_item_layout TYPE lvc_t_layi,
+         ls_item_layout TYPE lvc_s_layi,
+         ls_node_layout TYPE lvc_s_layn.
+
+<font color ="#0000FF">* set item-layout</font>
+  ls_item_layout-t_image = '@7T@'.
+  ls_item_layout-fieldname = go_tree1-&gt;c_hierarchy_column_name.
+  APPEND ls_item_layout TO lt_item_layout.
+
+<font color ="#0000FF">* longtext for CARRID</font>
+  READ TABLE gt_scarr INTO gs_scarr WITH KEY carrid = ps_spfli-carrid.
+  l_node_text =  gs_scarr-carrname.
+
+<font color ="#0000FF">* add node for CARRID</font>
+  CALL METHOD go_tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_key
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = l_node_text
+      is_node_layout   = ls_node_layout
+      is_outtab_line   = ls_spfli
+      it_item_layout   = lt_item_layout
+    IMPORTING
+      e_new_node_key   = p_node_key.
+
+  CLEAR gs_scarr.
+
+ENDFORM.                               " ADD_CARRID_LINE
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  ADD_COMPLETE_LINE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_complete_line USING    ps_spfli TYPE spfli
+                                p_relat_key TYPE lvc_nkey
+                       CHANGING p_node_key TYPE lvc_nkey.
+
+  DATA : lv_node_text TYPE lvc_value.
+
+<font color ="#0000FF">* set item-layout</font>
+  DATA : lt_item_layout TYPE lvc_t_layi,
+         ls_item_layout TYPE lvc_s_layi,
+         ls_node_layout TYPE lvc_s_layn.
+
+  ls_item_layout-fieldname = go_tree1-&gt;c_hierarchy_column_name.
+
+  APPEND ls_item_layout TO lt_item_layout.
+
+<font color ="#0000FF">* D'n'D-ID, only here!</font>
+<font color ="#0000FF">*  ls_node_layout-dragdropid = gv_handle_tree.</font>
+  lv_node_text =  ps_spfli-connid.
+
+<font color ="#0000FF">* Add complete line</font>
+  CALL METHOD go_tree1-&gt;add_node
+    EXPORTING
+      i_relat_node_key = p_relat_key
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      is_node_layout   = ls_node_layout
+      is_outtab_line   = ps_spfli
+      i_node_text      = lv_node_text
+      it_item_layout   = lt_item_layout
+    IMPORTING
+      e_new_node_key   = p_node_key.
+
+ENDFORM.                               " ADD_COMPLETE_LINE
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  set_sort</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sort.
+
+<font color ="#0000FF">* create sort-table</font>
+  gs_sort-spos = 1.
+  gs_sort-fieldname = 'CARRID'.
+  gs_sort-up = gc_x.
+  gs_sort-subtot = gc_x.
+  APPEND gs_sort TO gt_sort.
+
+  gs_sort-spos = 2.
+  gs_sort-fieldname = 'CONNID'.
+  gs_sort-up = gc_x.
+  gs_sort-subtot = gc_x.
+  APPEND gs_sort TO gt_sort.
+
+  gs_sort-spos = 3.
+  gs_sort-fieldname = 'FLDATE'.
+  gs_sort-up = gc_x.
+  APPEND gs_sort TO gt_sort.
+
+ENDFORM.                               " set_sort
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fieldcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fieldcat .
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CARRID'.
+  gs_fcat-no_out    = 'X'.
+  gs_fcat-key       = ''.
+  APPEND gs_fcat TO gt_fcat.
+
+  CLEAR gs_fcat.
+  gs_fcat-fieldname = 'CONNID'.
+  gs_fcat-no_out    = 'X'.
+  gs_fcat-key       = ''.
+  APPEND gs_fcat TO gt_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+
+<font color ="#0000FF">* table spfli</font>
+  REFRESH gt_db_spfli.
+  SELECT * FROM spfli INTO TABLE gt_db_spfli.
+
+<font color ="#0000FF">* table SCARR</font>
+  REFRESH gt_scarr.
+  SELECT * FROM scarr INTO TABLE gt_scarr.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_alv_control</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv_control .
+
+<font color ="#0000FF">*  ALV grid 컨테이너 생성</font>
+  CREATE OBJECT go_cont
+    EXPORTING
+      container_name = 'CUSTOM_CONTROL'.
+
+<font color ="#0000FF">* ALV grid 생성</font>
+  CREATE OBJECT go_grid
+    EXPORTING
+      i_appl_events = gc_x      "그리드 상의 이벤트 활성화
+      i_parent      = go_cont.
+
+<font color ="#0000FF">* 레이아웃 셋팅</font>
+  gs_layout-cwidth_opt = gc_x.
+
+<font color ="#0000FF">* 정렬 필드 셋팅</font>
+  PERFORM set_sort.
+
+<font color ="#0000FF">* 이벤트 핸들러 등록</font>
+  CREATE OBJECT go_handler.
+  SET HANDLER go_handler-&gt;handle_toolbar_set  FOR go_grid.
+  SET HANDLER go_handler-&gt;handle_user_command FOR go_grid.
+  SET HANDLER go_handler-&gt;handle_double_click FOR go_grid.
+  SET HANDLER go_handler-&gt;handle_context_menu FOR go_grid.
+
+<font color ="#0000FF">*  display alv</font>
+  CALL METHOD go_grid-&gt;set_table_for_first_display
+    EXPORTING
+      i_structure_name = 'SFLIGHT'
+      is_layout        = gs_layout
+    CHANGING
+      it_sort          = gt_sort
+      it_outtab        = gt_sflight.
+
+<font color ="#0000FF">*   flush [시스템이 아직 처리하지 않고 대기 중인 데이터를 즉시 처리하고 전송]</font>
+  CALL METHOD cl_gui_control=&gt;set_focus
+    EXPORTING
+      control = go_grid.
+
+  CALL METHOD cl_gui_cfw=&gt;flush. "클라이언트와 서버 간의 화면 변경을 동기화
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_alv_control</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh_alv_control .
+
+  gs_layout-grid_title = scarr-carrname. "부모노드의 이름 (그리드 타이틀)
+
+  CALL METHOD go_grid-&gt;set_frontend_layout "ALV Refresh시 Layout 재설정
+    EXPORTING
+      is_layout = gs_layout.
+
+  CALL METHOD go_grid-&gt;refresh_table_display. "alv에 display 되는 itab(데이터) 갱신
+
+  CLEAR saplane.
+
+  CALL METHOD cl_gui_control=&gt;set_focus
+    EXPORTING
+      control = go_grid.
+
+  CALL METHOD cl_gui_cfw=&gt;flush. "서버와 GUI사이의 싱크(동기화)를 맞춰주는 메소드
+
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

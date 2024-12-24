@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZC526_NOTE_01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZC526_NOTE_01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZC526_NOTE_01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZC526_NOTE_01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zc526_note_01 MESSAGE-ID oo.
+
+
+<font color ="#0000FF">*DATA : ls_mditem TYPE zc502mmt0011,</font>
+<font color ="#0000FF">*       lv_total  LIKE bapicurr-bapicurr.</font>
+DATA : BEGIN OF ls_no_cnt,
+           ponum TYPE zc502mmt0010-ponum,
+           flag,
+         END OF ls_no_cnt,
+
+         lt_no_cnt   LIKE TABLE OF ls_no_cnt,
+
+         ls_tab      TYPE zc502mmt0010,
+         lt_tab      LIKE TABLE OF ls_tab,
+
+         ls_item     TYPE zc502mmt0011,
+         lt_item     LIKE TABLE OF ls_item,
+
+         ls_mdheader TYPE zc502mmt0008,
+         lt_mdheader LIKE TABLE OF ls_mdheader,
+
+         ls_mditem   TYPE zc502mmt0009,
+         lt_mditem   LIKE TABLE OF ls_mditem,
+
+         lv_tabix    TYPE sy-tabix,
+
+         lv_total    LIKE BAPICURR-BAPICURR.
+
+ls_mditem-menge = 100.
+ls_mditem-price = 500.
+
+lv_total = 0.
+
+ls_mditem-total = ls_mditem-menge * ls_mditem-price.
+
+BREAK-POINT.
+
+
+<font color ="#0000FF">*PARAMETERS : pa_carr TYPE scarr-carrid,</font>
+<font color ="#0000FF">*             pa_conn TYPE sflight-connid.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*SELECT *</font>
+<font color ="#0000FF">*  FROM zc526cds0001( iv_carrid = @pa_carr, iv_connid = @pa_conn )</font>
+<font color ="#0000FF">*  INTO TABLE @DATA(lt_data).</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  cl_demo_output=&gt;display( lt_data ).</font>
+
+
+<font color ="#0000FF">*PARAMETERS : pa_year(4) TYPE n DEFAULT sy-datum(4) OBLIGATORY,</font>
+<font color ="#0000FF">*             pa_mon(2)  TYPE n.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*DATA : lv_start_date TYPE dats,</font>
+<font color ="#0000FF">*       lv_last_date  TYPE dats.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*IF pa_mon IS INITIAL. "년도만 입력한 경우</font>
+<font color ="#0000FF">** 일자를 1월 1일로 세팅해준다</font>
+<font color ="#0000FF">*  CONCATENATE pa_year '0101' INTO lv_start_date.</font>
+<font color ="#0000FF">*  CONCATENATE pa_year '1231' INTO lv_last_date.</font>
+<font color ="#0000FF">*ELSE. "년월이 입력된 경우</font>
+<font color ="#0000FF">** 입력된 월의 1일자로 시작일을 세팅</font>
+<font color ="#0000FF">*  CONCATENATE pa_year pa_mon '01' INTO lv_start_date.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CALL FUNCTION 'BKK_GET_MONTH_LASTDAY'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      i_date = lv_start_date</font>
+<font color ="#0000FF">*    IMPORTING</font>
+<font color ="#0000FF">*      e_date = lv_last_date.</font>
+<font color ="#0000FF">*ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*MESSAGE i000 WITH lv_start_date lv_last_date.</font>
+
+
+<font color ="#0000FF">*CALL SCREEN '0100'.</font>
+
+<font color ="#0000FF">** 넘버레인지 이용한 구매오더 채번 예제</font>
+<font color ="#0000FF">** 넘버레인지 객체 : ZC52601</font>
+<font color ="#0000FF">** 사용할 NR의 번호 : 01</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*PARAMETERS : pa_carr TYPE scarr-carrid.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*DATA : lv_pur_no(10).</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*CLEAR lv_pur_no.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*IF sy-batch IS NOT INITIAL. "Back에서 돌고 있다면</font>
+<font color ="#0000FF">*  MESSAGE s000 WITH '백그라운드에서 돌고있네'.</font>
+<font color ="#0000FF">*ELSE.</font>
+<font color ="#0000FF">*  PERFORM get_po_number USING lv_pur_no.</font>
+<font color ="#0000FF">*  MESSAGE s000 WITH lv_pur_no.</font>
+<font color ="#0000FF">*ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**& Form get_po_number</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**& text</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">**&      --&gt; LV_PUR_NO</font>
+<font color ="#0000FF">**&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*FORM get_po_number  USING pv_pur_no.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  DATA : lv_po(10),</font>
+<font color ="#0000FF">*         lv_number(8).</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** NR 객체로부터 번호를 얻어오는 Function을 Call</font>
+<font color ="#0000FF">*  CALL FUNCTION 'NUMBER_GET_NEXT'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      nr_range_nr = '01'</font>
+<font color ="#0000FF">*      object      = 'ZC52601'</font>
+<font color ="#0000FF">*    IMPORTING</font>
+<font color ="#0000FF">*      number      = lv_number.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 구매오더 채번규칙은 'PO' 와 lv_number의 결합</font>
+<font color ="#0000FF">*  CONCATENATE 'PO' lv_number INTO pv_pur_no.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*ENDFORM.</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* B01 첫번째 버튼</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

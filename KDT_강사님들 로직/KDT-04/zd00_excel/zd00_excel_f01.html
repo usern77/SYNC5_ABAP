@@ -1,0 +1,847 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_EXCEL_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_EXCEL_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_EXCEL_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_EXCEL_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_filenm CHANGING pa_file.
+
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      field_name = 'PA_FILE'
+    IMPORTING
+      file_name  = pa_file.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_before_process</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_before_process .
+
+  DATA : lv_file LIKE rlgrap-filename.
+
+  lv_file = pa_file+3.
+
+  IF lv_file = space.
+    MESSAGE i006(bc405) WITH '경로입력하세요'.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form upload_excel</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM upload_excel .
+
+
+  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'
+    EXPORTING
+      filename                = pa_file
+      i_begin_col             = 1
+      i_begin_row             = 2
+      i_end_col               = 100
+      i_end_row               = 10000
+    TABLES
+      intern                  = gt_upload
+    EXCEPTIONS
+      inconsistent_parameters = 1
+      upload_ole              = 2
+      OTHERS                  = 3.
+
+
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+  ENDIF.
+
+
+<font color ="#0000FF">*  CALL FUNCTION 'ZALSM_EXCEL_TO_INTERNAL_TABLE'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      filename                = pa_file</font>
+<font color ="#0000FF">*      i_begin_col             = 1</font>
+<font color ="#0000FF">*      i_begin_row             = 2</font>
+<font color ="#0000FF">*      i_end_col               = 100</font>
+<font color ="#0000FF">*      i_end_row               = 10000</font>
+<font color ="#0000FF">*      I_SHEET                 = 2</font>
+<font color ="#0000FF">*    TABLES</font>
+<font color ="#0000FF">*      intern                  = gt_upload</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      inconsistent_parameters = 1</font>
+<font color ="#0000FF">*      upload_ole              = 2</font>
+<font color ="#0000FF">*      OTHERS                  = 3.</font>
+
+
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+  ENDIF.
+
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE i006(bc405) WITH '업로드오류'.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+
+  IF gt_upload IS INITIAL.
+    MESSAGE i006(bc405) WITH '업로드된 데이터가 없습니다.'.
+  ENDIF.
+
+  LOOP AT gt_upload.
+    ASSIGN COMPONENT gt_upload-col OF STRUCTURE gs_tmp TO &lt;fs&gt;.
+    &lt;fs&gt; = gt_upload-value.
+
+    AT END OF row.
+      MOVE-CORRESPONDING gs_tmp TO gs_data.
+      APPEND gs_data TO gt_data.
+      CLEAR gs_data.
+    ENDAT.
+  ENDLOOP.
+
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form insert_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM insert_data .
+
+  DATA : ls_data TYPE ztbook_d00.
+
+  LOOP AT gt_data INTO ls_data.
+    ls_data-cuser = sy-uname.
+    ls_data-cdate = sy-datum.
+    ls_data-ctime = sy-uzeit.
+
+    MODIFY gt_data FROM ls_data.
+  ENDLOOP.
+
+  MODIFY ztbook_d00 FROM TABLE gt_data.
+
+  IF sy-subrc = 0.
+    MESSAGE s006(bc405) WITH '성공적으로 저장되었습니다.'.
+  ELSE.
+    MESSAGE s006(bc405) WITH '저장오류 발생' DISPLAY LIKE 'E'.
+  ENDIF.
+
+  CLEAR: gt_data.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DOWNLOAD_EXCEL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& OLE(Object Linking and Embedding) object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ALV 생성하는 흐름과 비슷하다고 이해하면 좋다.</font>
+<font color ="#0000FF">*& 객체 생성 -&gt; 메소드 호출</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM download_excel .
+
+  DATA: lt_tab TYPE TABLE OF dfies,
+        ls_tab LIKE LINE OF lt_tab.
+
+  DATA: lv_visible TYPE i,
+        lv_index   TYPE sy-tabix.
+
+  " 딕셔너리에 저장된 테이블의 속성을 가져오는 펑션
+  CALL FUNCTION 'DDIF_FIELDINFO_GET'
+    EXPORTING
+      tabname        = 'ZTBOOK_D00'
+    TABLES
+      dfies_tab      = lt_tab
+    EXCEPTIONS
+      not_found      = 1
+      internal_error = 2
+      OTHERS         = 3.
+
+  IF sy-subrc = 0.
+
+    " 불필요한 컬럼을 지움. 해당 row가 삭제되면 index값도 달라지므로 유의할 것
+    DELETE lt_tab INDEX 1.
+    DELETE lt_tab INDEX 5.
+    DELETE lt_tab INDEX 5.
+    DELETE lt_tab INDEX 5.
+
+<font color ="#0000FF">* 1. Time for OLE Application : start Excel</font>
+    CREATE OBJECT go_excel 'EXCEL.APPLICATION'.   "주석변수는 변경 불가 (이미 정해진 인자들)
+
+<font color ="#0000FF">* 2. Create Workbook and Worksheets</font>
+    " get list of workbooks, initially empty
+    CALL METHOD OF go_excel 'Workbooks' = go_wbook.
+
+    SET PROPERTY OF go_excel 'Visible' = 1. "엑셀을 띄울것인지 설정 (조회모드) : 1 or 0
+
+    CALL METHOD OF go_wbook 'Add'.
+
+<font color ="#0000FF">* 3. Activate the current worksheet and name it</font>
+
+    " 시트 설정
+    CALL METHOD OF go_excel 'Worksheets' = go_sheet
+      EXPORTING
+        #1 = 1.   "활성화할 시트
+
+    "  시트 활성화
+    CALL METHOD OF go_sheet 'Activate'.
+    SET PROPERTY OF go_sheet 'Name' = '시트명'.    "Sheet name
+
+    LOOP AT lt_tab INTO ls_tab.
+      lv_index = sy-tabix.
+      PERFORM fill_cell USING go_excel 1 lv_index ls_tab-fieldtext.    "제목
+
+    ENDLOOP.
+  ENDIF.
+
+
+
+  FREE: go_excel, go_wbook, go_sheet.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form FILL_CELL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GO_APPLICATION</font>
+<font color ="#0000FF">*&      --&gt; P_1</font>
+<font color ="#0000FF">*&      --&gt; LV_INDEX</font>
+<font color ="#0000FF">*&      --&gt; LS_TAB_FIELDNAME</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM fill_cell USING pv_application
+                         pv_row
+                         pv_col
+                         pv_value.
+
+  DATA: lv_ecell TYPE ole2_object.
+
+  CALL METHOD OF pv_application 'Cells' = lv_ecell
+    EXPORTING
+      #1 = pv_row
+      #2 = pv_col.
+
+  SET PROPERTY OF lv_ecell 'Value' = pv_value.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+
+  IF go_dock IS INITIAL.
+    CREATE OBJECT go_dock
+      EXPORTING
+        repid                       = sy-repid
+        dynnr                       = sy-dynnr
+        side                        = cl_gui_docking_container=&gt;dock_at_top
+        extension                   = 1000
+      EXCEPTIONS
+        cntl_error                  = 1
+        cntl_system_error           = 2
+        create_error                = 3
+        lifetime_error              = 4
+        lifetime_dynpro_dynpro_link = 5
+        OTHERS                      = 6.
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    CREATE OBJECT go_alv
+      EXPORTING
+        i_parent          = go_dock
+      EXCEPTIONS
+        error_cntl_create = 1
+        error_cntl_init   = 2
+        error_cntl_link   = 3
+        error_dp_create   = 4
+        OTHERS            = 5.
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+    gs_layout-cwidth_opt = 'X'.
+
+    CALL METHOD go_alv-&gt;set_table_for_first_display
+      EXPORTING
+<font color ="#0000FF">*       i_buffer_active               =</font>
+        i_bypassing_buffer            = 'X'
+<font color ="#0000FF">*       i_consistency_check           =</font>
+        i_structure_name              = 'ZTBOOK_D00'
+<font color ="#0000FF">*       is_variant                    =</font>
+<font color ="#0000FF">*       i_save                        =</font>
+<font color ="#0000FF">*       i_default                     = 'X'</font>
+        is_layout                     = gs_layout
+<font color ="#0000FF">*       is_print                      =</font>
+<font color ="#0000FF">*       it_special_groups             =</font>
+<font color ="#0000FF">*       it_toolbar_excluding          =</font>
+<font color ="#0000FF">*       it_hyperlink                  =</font>
+<font color ="#0000FF">*       it_alv_graphics               =</font>
+<font color ="#0000FF">*       it_except_qinfo               =</font>
+<font color ="#0000FF">*       ir_salv_adapter               =</font>
+      CHANGING
+        it_outtab                     = gt_data[]
+        it_fieldcatalog               = gt_fcat
+<font color ="#0000FF">*       it_sort                       =</font>
+<font color ="#0000FF">*       it_filter                     =</font>
+      EXCEPTIONS
+        invalid_parameter_combination = 1
+        program_error                 = 2
+        too_many_lines                = 3
+        OTHERS                        = 4.
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*     Implement suitable error handling here</font>
+    ENDIF.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form pop_up_to_confirm</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- LV_CHK</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM pop_up_to_confirm CHANGING pv_chk.
+
+  DATA : lv_answer.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+<font color ="#0000FF">*     TITLEBAR              = ' '</font>
+<font color ="#0000FF">*     DIAGNOSE_OBJECT       = ' '</font>
+      text_question         = TEXT-q01
+      text_button_1         = '네'
+      icon_button_1         = 'ICON_OKAY'
+      text_button_2         = '아니오'
+      icon_button_2         = 'ICON_CANCEL'
+      default_button        = '1'
+      display_cancel_button = ''
+<font color ="#0000FF">*     USERDEFINED_F1_HELP   = ' '</font>
+<font color ="#0000FF">*     START_COLUMN          = 25</font>
+<font color ="#0000FF">*     START_ROW             = 6</font>
+<font color ="#0000FF">*     POPUP_TYPE            =</font>
+<font color ="#0000FF">*     IV_QUICKINFO_BUTTON_1 = ' '</font>
+<font color ="#0000FF">*     IV_QUICKINFO_BUTTON_2 = ' '</font>
+    IMPORTING
+      answer                = lv_answer.
+
+  pv_chk = lv_answer.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form download_smw0_opt1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM download_smw0_opt1.
+
+  DATA : ls_key TYPE wwwdatatab.
+
+<font color ="#0000FF">* 파일 경로 조회</font>
+  PERFORM set_directory USING 'ZD00_EXCEL_BOOK'.
+
+  SELECT SINGLE * FROM wwwdata
+    INTO CORRESPONDING FIELDS OF ls_key
+   WHERE objid = 'ZD00_EXCEL_BOOK'. " 'SMW0에 있는 오브젝트명'.
+
+<font color ="#0000FF">* 엑셀 다운</font>
+  CALL FUNCTION 'DOWNLOAD_WEB_OBJECT'
+    EXPORTING
+      key         = ls_key
+      destination = gv_file.
+
+  IF sy-subrc = 0.
+    MESSAGE s006(bc405) WITH '성공적으로 다운로드 되었습니다.'.
+  ELSE.
+    MESSAGE s006(bc405) WITH '해당 파일을 찾지 못했습니다.'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_directory</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 그대로 활용하세요</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_KEY_OBJID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_directory USING pv_objid TYPE wwwdatatab-objid.
+
+  CLEAR gv_file.
+
+  CREATE OBJECT objfile.
+
+  IF gv_file IS NOT INITIAL.
+    gv_initial_dir = gv_file.
+  ELSE.
+    objfile-&gt;get_temp_directory( CHANGING     temp_dir = gv_initial_dir
+                                 EXCEPTIONS   cntl_error           = 1
+                                              error_no_gui         = 2
+                                              not_supported_by_gui = 3 ).
+  ENDIF.
+
+  objfile-&gt;directory_browse( EXPORTING  initial_folder = gv_initial_dir
+                             CHANGING   selected_folder = gv_directory
+                             EXCEPTIONS cntl_error      = 1
+                                        error_no_gui    = 2
+                                        not_supported_by_gui = 3 ).
+  IF sy-subrc = 0.
+    gv_file = gv_directory && '\' && pv_objid && '.xlsx'.
+  ELSE.
+    MESSAGE s006(bc405) WITH '해당하는 디렉토리가 없습니다.' DISPLAY LIKE 'E'.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form download_smw0_opt2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM download_smw0_opt2 .
+
+  DATA : lv_filename    TYPE string,
+         lv_path        TYPE string,
+         lv_fullpath    TYPE string,
+         lv_user_action TYPE i,
+         lv_rc          TYPE sy-subrc.
+
+  DATA : ls_key  TYPE wwwdatatab.
+
+  SELECT SINGLE * FROM wwwdata
+    INTO CORRESPONDING FIELDS OF ls_key
+   WHERE objid = 'ZD00_EXCEL_BOOK'. " 'SMW0에 있는 오브젝트명'.
+
+  CONCATENATE sy-datum sy-uzeit '.xlsx' INTO lv_filename.
+
+  CALL METHOD cl_gui_frontend_services=&gt;file_save_dialog
+    EXPORTING
+<font color ="#0000FF">*     window_title              =</font>
+      default_extension         = 'XLSX'
+      default_file_name         = lv_filename
+<font color ="#0000FF">*     with_encoding             =</font>
+<font color ="#0000FF">*     file_filter               =</font>
+<font color ="#0000FF">*     initial_directory         =</font>
+<font color ="#0000FF">*     prompt_on_overwrite       = 'X'</font>
+    CHANGING
+      filename                  = lv_filename
+      path                      = lv_path
+      fullpath                  = lv_fullpath
+      user_action               = lv_user_action
+<font color ="#0000FF">*     file_encoding             =</font>
+    EXCEPTIONS
+      cntl_error                = 1
+      error_no_gui              = 2
+      not_supported_by_gui      = 3
+      invalid_default_file_name = 4
+      OTHERS                    = 5.
+
+  IF lv_user_action = cl_gui_frontend_services=&gt;action_cancel.
+    EXIT.
+  ENDIF.
+
+  CALL FUNCTION 'DOWNLOAD_WEB_OBJECT'
+    EXPORTING
+      key         = ls_key
+      destination = CONV localfile( lv_fullpath ).
+
+  CALL METHOD cl_gui_frontend_services=&gt;execute
+    EXPORTING
+      document               = lv_fullpath
+    EXCEPTIONS
+      cntl_error             = 1
+      error_no_gui           = 2
+      bad_parameter          = 3
+      file_not_found         = 4
+      path_not_found         = 5
+      file_extension_unknown = 6
+      error_execute_failed   = 7
+      synchronous_failed     = 8
+      not_supported_by_gui   = 9
+      OTHERS                 = 10.
+
+  IF sy-subrc = 0.
+    MESSAGE s006(bc405) WITH '성공적으로 다운로드 되었습니다.'.
+  ELSE.
+    MESSAGE s006(bc405) WITH '해당 파일을 찾지 못했습니다.'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form upload_excel_ole</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM upload_excel_ole .
+
+<font color ="#0000FF">*  DATA : excel_tab     TYPE  ty_t_sender.</font>
+<font color ="#0000FF">*  DATA : ld_separator  TYPE  c.</font>
+<font color ="#0000FF">*  DATA : application TYPE  ole2_object,</font>
+<font color ="#0000FF">*         workbook    TYPE  ole2_object,</font>
+<font color ="#0000FF">*         range       TYPE  ole2_object,</font>
+<font color ="#0000FF">*         worksheets  TYPE  ole2_object,</font>
+<font color ="#0000FF">*         worksheet   TYPE  ole2_object.</font>
+<font color ="#0000FF">*  DATA : h_cell  TYPE  ole2_object,</font>
+<font color ="#0000FF">*         h_cell1 TYPE  ole2_object.</font>
+<font color ="#0000FF">*  DATA : ld_rc             TYPE i.</font>
+
+<font color ="#0000FF">* Get TAB-sign for separation of fields</font>
+  CLASS cl_abap_char_utilities DEFINITION LOAD.
+  ld_separator = cl_abap_char_utilities=&gt;horizontal_tab.
+
+<font color ="#0000FF">* open file in Excel</font>
+  IF application-header = space OR application-handle = -1.
+    CREATE OBJECT application 'EXCEL.APPLICATION'.
+<font color ="#0000FF">*    m_message.</font>
+  ENDIF.
+  CALL METHOD  OF application    'WORKBOOKS' = workbook.
+<font color ="#0000FF">*  m_message.</font>
+  CALL METHOD  OF workbook 'OPEN'    EXPORTING #1 = pa_file.
+<font color ="#0000FF">*  m_message.</font>
+  GET PROPERTY OF  application 'ACTIVESHEET' = worksheet.
+
+  CALL METHOD OF workbook 'Sheets' = worksheets.
+  CALL METHOD OF worksheets 'item' = worksheet
+    EXPORTING
+<font color ="#0000FF">*    #1 = 1. " sheet number</font>
+    #1 = 2. " sheet number
+
+  CALL METHOD OF worksheet 'Cells' = h_cell
+      EXPORTING
+        #1 = 1
+        #2 = 2.
+
+  CALL METHOD OF worksheet 'Cells' = h_cell1
+      EXPORTING
+        #1 = 10
+        #2 = 10.
+
+  CALL METHOD  OF worksheet 'RANGE' = range
+       EXPORTING
+        #1 = h_cell
+        #2 = h_cell1.
+
+  CALL METHOD OF range 'SELECT'.
+
+<font color ="#0000FF">* copy to Clippboard</font>
+  CALL METHOD OF range 'COPY'
+    EXPORTING
+      #1 = 1
+      #2 = 1000.
+
+<font color ="#0000FF">*  CALL METHOD OF range 'PasteSpecial'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      #1 = 'Values'.  " 필요한 값만 붙여넣기</font>
+
+
+  CALL METHOD cl_gui_frontend_services=&gt;clipboard_import
+    IMPORTING
+      data       = excel_tab
+    EXCEPTIONS
+      cntl_error = 1
+<font color ="#0000FF">*     ERROR_NO_GUI         = 2</font>
+<font color ="#0000FF">*     NOT_SUPPORTED_BY_GUI = 3</font>
+      OTHERS     = 4.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a037(alsmex).
+  ENDIF.
+
+  CLEAR gt_upload.
+
+<font color ="#0000FF">*  DATA : intern TYPE  TABLE OF alsmex_tabline.</font>
+  PERFORM separated_to_intern_convert TABLES excel_tab
+                                             gt_upload "intern
+                                      USING  ld_separator.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form separated_to_intern_convert</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; EXCEL_TAB</font>
+<font color ="#0000FF">*&      --&gt; INTERN</font>
+<font color ="#0000FF">*&      --&gt; LD_SEPARATOR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM separated_to_intern_convert TABLES i_tab       TYPE ty_t_sender
+                                        i_intern    TYPE ty_t_itab
+                                 USING  i_separator TYPE c.
+  DATA: l_sic_tabix LIKE sy-tabix,
+        l_sic_col   TYPE kcd_ex_col.
+  DATA: l_fdpos     LIKE sy-fdpos.
+
+  REFRESH i_intern.
+
+  LOOP AT i_tab.
+    l_sic_tabix = sy-tabix.
+    l_sic_col = 0.
+    WHILE i_tab CA i_separator.
+      l_fdpos = sy-fdpos.
+      l_sic_col = l_sic_col + 1.
+      PERFORM line_to_cell_separat TABLES i_intern
+                                   USING  i_tab l_sic_tabix l_sic_col
+                                          i_separator l_fdpos.
+    ENDWHILE.
+    IF i_tab &lt;&gt; space.
+      CLEAR i_intern.
+      i_intern-row = l_sic_tabix.
+      i_intern-col = l_sic_col + 1.
+      i_intern-value = i_tab.
+      APPEND i_intern.
+    ENDIF.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form line_to_cell_separat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; I_INTERN</font>
+<font color ="#0000FF">*&      --&gt; I_TAB</font>
+<font color ="#0000FF">*&      --&gt; L_SIC_TABIX</font>
+<font color ="#0000FF">*&      --&gt; L_SIC_COL</font>
+<font color ="#0000FF">*&      --&gt; I_SEPARATOR</font>
+<font color ="#0000FF">*&      --&gt; L_FDPOS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM line_to_cell_separat  TABLES i_intern    TYPE ty_t_itab
+                          USING  i_line
+                                 i_row       LIKE sy-tabix
+                                 ch_cell_col TYPE kcd_ex_col
+                                 i_separator TYPE c
+                                 i_fdpos     LIKE sy-fdpos.
+  DATA: l_string   TYPE ty_s_senderline.
+  DATA  l_sic_int  TYPE i.
+
+  CLEAR i_intern.
+  l_sic_int = i_fdpos.
+  i_intern-row = i_row.
+  l_string = i_line.
+  i_intern-col = ch_cell_col.
+<font color ="#0000FF">* csv Dateien mit separator in Zelle: --&gt; ;"abc;cd";</font>
+  IF ( i_separator = ';' OR  i_separator = ',' ) AND
+       l_string(1) = gc_esc.
+    PERFORM line_to_cell_esc_sep USING l_string
+                                       l_sic_int
+                                       i_separator
+                                       i_intern-value.
+  ELSE.
+    IF l_sic_int &gt; 0.
+      i_intern-value = i_line(l_sic_int).
+    ENDIF.
+  ENDIF.
+  IF l_sic_int &gt; 0.
+    APPEND i_intern.
+  ENDIF.
+  l_sic_int = l_sic_int + 1.
+  i_line = i_line+l_sic_int.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form line_to_cell_esc_sep</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; L_STRING</font>
+<font color ="#0000FF">*&      --&gt; L_SIC_INT</font>
+<font color ="#0000FF">*&      --&gt; I_SEPARATOR</font>
+<font color ="#0000FF">*&      --&gt; I_INTERN_VALUE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM line_to_cell_esc_sep USING i_string
+                                i_sic_int      TYPE i
+                                i_separator    TYPE c
+                                i_intern_value TYPE ty_d_itabvalue.
+  DATA: l_int         TYPE i,
+        l_cell_end(2).
+  FIELD-SYMBOLS: &lt;l_cell&gt;.
+  l_cell_end = gc_esc.
+  l_cell_end+1 = i_separator .
+
+  IF i_string CS gc_esc.
+    i_string = i_string+1.
+    IF i_string CS l_cell_end.
+      l_int = sy-fdpos.
+      ASSIGN i_string(l_int) TO &lt;l_cell&gt;.
+      i_intern_value = &lt;l_cell&gt;.
+      l_int = l_int + 2.
+      i_sic_int = l_int.
+      i_string = i_string+l_int.
+    ELSEIF i_string CS gc_esc.
+<font color ="#0000FF">*     letzte Celle</font>
+      l_int = sy-fdpos.
+      ASSIGN i_string(l_int) TO &lt;l_cell&gt;.
+      i_intern_value = &lt;l_cell&gt;.
+      l_int = l_int + 1.
+      i_sic_int = l_int.
+      i_string = i_string+l_int.
+      l_int = strlen( i_string ).
+      IF l_int &gt; 0 . MESSAGE x001(kx) . ENDIF.
+    ELSE.
+      MESSAGE x001(kx) . "was ist mit csv-Format
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form convert_to_pdf</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM convert_to_pdf .
+
+  DATA : gv_temp_filename     LIKE rlgrap-filename,
+         gv_temp_filename_pdf LIKE rlgrap-filename,
+         gv_form(40).
+
+  DATA lv_rc TYPE i.
+
+  CLEAR gv_temp_filename_pdf.
+  CONCATENATE 'TEST' '\' sy-uzeit  '.PDF'
+              INTO gv_temp_filename_pdf.
+
+  GET PROPERTY OF go_excel 'Workbooks' = go_wbook
+    EXPORTING #1 = 1.
+
+  CALL METHOD OF go_wbook 'ExportAsFixedFormat'
+    EXPORTING
+      #1 = '0'
+      #2 = gv_temp_filename_pdf.
+
+  CALL METHOD OF go_wbook 'Close'
+    EXPORTING
+      #1 = 0.
+
+  CALL METHOD OF go_excel 'Quit'.
+
+  CALL METHOD cl_gui_frontend_services=&gt;file_delete
+    EXPORTING
+      filename = CONV #( gv_temp_filename )
+    CHANGING
+      rc       = lv_rc.
+
+  CALL METHOD OF go_wbook 'ExportAsFixedFormat'
+    EXPORTING
+      #1 = 0
+      #2 = gv_temp_filename_pdf.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form download_smw0_opt3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM download_smw0_opt3 .
+
+  DATA : lv_filename    TYPE string,
+         lv_path        TYPE string,
+         lv_fullpath    TYPE string,
+         lv_user_action TYPE i,
+         lv_rc          TYPE sy-subrc.
+
+  DATA : ls_key  TYPE wwwdatatab.
+
+  SELECT SINGLE * FROM wwwdata
+    INTO CORRESPONDING FIELDS OF ls_key
+   WHERE objid = 'ZD00_EXCEL_BOOK'. " 'SMW0에 있는 오브젝트명'.
+
+  CONCATENATE sy-datum sy-uzeit '.xlsx' INTO lv_filename.
+
+  CALL METHOD cl_gui_frontend_services=&gt;file_save_dialog
+    EXPORTING
+<font color ="#0000FF">*     window_title              =</font>
+      default_extension         = 'XLSX'
+      default_file_name         = lv_filename
+<font color ="#0000FF">*     with_encoding             =</font>
+<font color ="#0000FF">*     file_filter               =</font>
+<font color ="#0000FF">*     initial_directory         =</font>
+<font color ="#0000FF">*     prompt_on_overwrite       = 'X'</font>
+    CHANGING
+      filename                  = lv_filename
+      path                      = lv_path
+      fullpath                  = lv_fullpath
+      user_action               = lv_user_action
+<font color ="#0000FF">*     file_encoding             =</font>
+    EXCEPTIONS
+      cntl_error                = 1
+      error_no_gui              = 2
+      not_supported_by_gui      = 3
+      invalid_default_file_name = 4
+      OTHERS                    = 5.
+
+  IF lv_user_action = cl_gui_frontend_services=&gt;action_cancel.
+    EXIT.
+  ENDIF.
+
+  CALL FUNCTION 'DOWNLOAD_WEB_OBJECT'
+    EXPORTING
+      key         = ls_key
+<font color ="#0000FF">*      destination = CONV localfile( lv_fullpath ).</font>
+      destination = lv_filename.
+
+<font color ="#0000FF">*  CALL METHOD cl_gui_frontend_services=&gt;execute</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      document               = lv_fullpath</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      cntl_error             = 1</font>
+<font color ="#0000FF">*      error_no_gui           = 2</font>
+<font color ="#0000FF">*      bad_parameter          = 3</font>
+<font color ="#0000FF">*      file_not_found         = 4</font>
+<font color ="#0000FF">*      path_not_found         = 5</font>
+<font color ="#0000FF">*      file_extension_unknown = 6</font>
+<font color ="#0000FF">*      error_execute_failed   = 7</font>
+<font color ="#0000FF">*      synchronous_failed     = 8</font>
+<font color ="#0000FF">*      not_supported_by_gui   = 9</font>
+<font color ="#0000FF">*      OTHERS                 = 10.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  IF sy-subrc = 0.</font>
+<font color ="#0000FF">*    MESSAGE s006(bc405) WITH '성공적으로 다운로드 되었습니다.'.</font>
+<font color ="#0000FF">*  ELSE.</font>
+<font color ="#0000FF">*    MESSAGE s006(bc405) WITH '해당 파일을 찾지 못했습니다.'.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_ALV_TREE</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_ALV_TREE</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [D00] Alv tree sample</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZD00_ALV_TREE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zd00_alv_tree.
+
+include <a href ="zd00_alv_tree_top.html">zd00_alv_tree_top</a>.
+include <a href ="zd00_alv_tree_s01.html">zd00_alv_tree_s01</a>.
+
+include <a href ="zd00_alv_tree_c01.html">zd00_alv_tree_c01</a>.   " alv 이벤트 정의 / 구현
+include <a href ="zd00_alv_tree_c02.html">zd00_alv_tree_c02</a>.   " tree 에 설정된 이벤트 정의 / 구현
+
+include <a href ="zd00_alv_tree_o01.html">zd00_alv_tree_o01</a>.
+include <a href ="zd00_alv_tree_i01.html">zd00_alv_tree_i01</a>.
+
+include <a href ="zd00_alv_tree_e01.html">zd00_alv_tree_e01</a>.
+include <a href ="zd00_alv_tree_f01.html">zd00_alv_tree_f01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_100 --&gt; [D00] 항공 일정 -&gt; 항공편 정보</font>
+<font color ="#0000FF">* TITLE_200 --&gt; 항공편:상세내역</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 002 Plane Type</font>
+<font color ="#0000FF">* 005 Detail</font>
+<font color ="#0000FF">* 007 비행스케줄</font>
+<font color ="#0000FF">* 008 조회:</font>
+<font color ="#0000FF">* 009 ALV TREE</font>
+<font color ="#0000FF">* 010 항공사/항공편</font>
+<font color ="#0000FF">* 011 Airline/Flight</font>
+<font color ="#0000FF">* 054 Select a flight date</font>
+<font color ="#0000FF">* 115 검색된 데이터가 없습니다.</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 0K</font>
+<font color ="#0000FF">*000   & & & &</font>
+<font color ="#0000FF">*534   Program errors</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

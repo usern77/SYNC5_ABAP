@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_F4_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_F4_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_F4_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_F4_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+TABLES : t001, stravelag.
+
+DATA : ok_code TYPE sy-ucomm.
+
+DATA : gv_p1(5).
+
+DATA : gs_stravelag TYPE stravelag,
+       gt_stravelag TYPE TABLE OF stravelag.
+
+"- container (check each constructor method)
+DATA : "parent container
+  go_cont1  TYPE REF TO cl_gui_container,
+  go_cont2  TYPE REF TO cl_gui_container,
+
+  "custom container
+  go_custom TYPE REF TO cl_gui_custom_container, "screen:custom control area
+
+  "docking container
+  go_dock1  TYPE REF TO cl_gui_docking_container,
+  go_dock2  TYPE REF TO cl_gui_docking_container,
+  go_dock3  TYPE REF TO cl_gui_docking_container,
+
+  "splite container
+  go_split  TYPE REF TO cl_gui_splitter_container,
+  go_esplit TYPE REF TO cl_gui_easy_splitter_container,
+
+  " dialogbox container
+  go_dialog TYPE REF TO cl_gui_dialogbox_container.
+
+CLASS lcl_event_handler DEFINITION DEFERRED.   "클래스 정의가 하위 위치하더라도 참조가 가능하다.
+DATA : go_handler TYPE REF TO lcl_event_handler.
+
+"- grid
+DATA : go_grid1 TYPE REF TO cl_gui_alv_grid,
+       go_grid2 TYPE REF TO cl_gui_alv_grid,
+       go_grid3 TYPE REF TO cl_gui_alv_grid,
+       go_grid4 TYPE REF TO cl_gui_alv_grid.
+
+
+"- layout variant
+DATA : gs_variant  TYPE disvariant,
+       gs_variant1 TYPE disvariant,
+       gv_save.
+
+"- layout
+DATA : gs_layout TYPE lvc_s_layo.
+
+"- toolbar excluding
+DATA : gt_excluded TYPE ui_functions.
+
+"- sort
+DATA : gs_sort TYPE lvc_s_sort,
+       gt_sort TYPE lvc_t_sort.
+
+"-filter
+DATA : gs_filt TYPE lvc_s_filt,
+       gt_filt TYPE lvc_t_filt.
+
+"- field catalog
+DATA : gs_fcat TYPE lvc_s_fcat,
+       gt_fcat TYPE lvc_t_fcat.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

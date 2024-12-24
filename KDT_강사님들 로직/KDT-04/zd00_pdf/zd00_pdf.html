@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_PDF</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_PDF</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Program ZD00_PDF</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZD00_PDF</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zd00_pdf.
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  Use Excel to convert a spreadsheet to pdf</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*REPORT y_excel_ole_pdf.</font>
+LOAD-OF-PROGRAM.
+<font color ="#0000FF">* Allow OLE calls to COM enabled programs on Workstation (e.g. Excel)</font>
+  INCLUDE ole2incl.
+<font color ="#0000FF">* handles for OLE objects</font>
+  DATA: oexcel TYPE ole2_object,    " Excel object
+        owbs   TYPE ole2_object,    " collection of workbooks
+        owb    TYPE ole2_object.    " workbook
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  ErrorHandler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       outputs OLE error if any was returned by SAP</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM errorhandler.
+  IF sy-subrc &lt;&gt; 0.
+    WRITE: / 'OLE-Automation Error:'(010), sy-subrc.
+    CALL METHOD OF oexcel 'Quit'.
+    FREE OBJECT oexcel.
+    STOP.
+  ENDIF.
+ENDFORM.                    " ErrorHandler
+PARAMETERS: p_source TYPE string LOWER CASE.
+PARAMETERS: p_dest   TYPE string LOWER CASE.
+
+START-OF-SELECTION.
+<font color ="#0000FF">* Start a new copy of Excel</font>
+  CREATE OBJECT oexcel 'EXCEL.APPLICATION'.
+  PERFORM errorhandler.  "Set oExcel = CreateObject()
+<font color ="#0000FF">* Hide Excel window for now (faster)</font>
+  SET PROPERTY OF oexcel 'Visible' = 0.
+  PERFORM errorhandler.  "oExcel.Visible = False
+<font color ="#0000FF">* Tell Excel not to update entire worksheet with each change (faster)</font>
+  SET PROPERTY OF oexcel 'ScreenUpdating' = 0.
+  PERFORM errorhandler.  "oExcel.ScreenUpdating = False
+<font color ="#0000FF">* Get list of workbooks, initially empty</font>
+  CALL METHOD OF oexcel 'Workbooks' = owbs.
+  PERFORM errorhandler.  "Set oWBs = oExcel.Workbooks
+<font color ="#0000FF">* Open excel file, returning workbook</font>
+  CALL METHOD OF owbs 'Open' "= owb
+    EXPORTING
+      #1 = p_source.
+  PERFORM errorhandler.  "oWBs.Open P_Source
+  CALL METHOD OF owbs 'Item' = owb
+    EXPORTING #1 = 1.
+  PERFORM errorhandler.  "Set oWB = oWBs.Item(1)
+<font color ="#0000FF">* Export file as PDF using the name User defined previously</font>
+  CALL METHOD OF owb 'ExportAsFixedFormat'
+    EXPORTING
+      #1 = 0       "Type = xlTypePDF
+      #2 = p_dest. "FileName
+  PERFORM errorhandler.  "oWB.ExportAsFixedFormat xlTypePDF, P_Dest
+<font color ="#0000FF">* Close Excel file without saving changes</font>
+  CALL METHOD OF owb 'Close'
+    EXPORTING
+      #1 = 0. "Save = False
+  PERFORM errorhandler.  "oWB.Close ( Save = False)
+<font color ="#0000FF">* Tell Excel to resume updating entire worksheet with each change</font>
+  SET PROPERTY OF oexcel 'ScreenUpdating' = 1.
+  PERFORM errorhandler.  "Application.ScreenUpdating = True
+<font color ="#0000FF">* Tell Excel to show worksheet to the User</font>
+  SET PROPERTY OF oexcel 'Visible' = 1.
+  PERFORM errorhandler.  "oExcel.Visible = True
+  CALL METHOD OF oexcel 'Quit'.
+  PERFORM errorhandler.  "oExcel.Quit
+<font color ="#0000FF">* Disconnect from Excel</font>
+  FREE OBJECT oexcel.
+  PERFORM errorhandler.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

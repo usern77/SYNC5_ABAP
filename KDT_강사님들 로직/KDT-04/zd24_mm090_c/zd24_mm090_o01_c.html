@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD24_MM090_O01_C</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD24_MM090_O01_C</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD24_MM090_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD24_MM090_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&status, title for screen 100</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0100 OUTPUT.
+
+<font color ="#0000FF">*  "SAVE 버튼 추가하고 IF로 제어 분기</font>
+  IF tabstrip-activetab = 'DISPLAY'.
+    SET PF-STATUS 'STATUS_100' EXCLUDING 'SAVE'.  "조회탭에서는 SAVE 버튼 제외
+  ELSEIF gs_excel-cellscol IS NOT INITIAL.
+    SET PF-STATUS 'STATUS_100' EXCLUDING 'SAVE'.   "엑셀업로드 탭에서 cell 문제 있을 경우 SAVE 버튼 제외
+  ELSE.
+    SET PF-STATUS 'STATUS_100'. "엑셀업로드 탭에서 cell 문제 없을 경우 SAVE 버튼 포함
+  ENDIF.
+
+  SET TITLEBAR 'TITLE_100'. " 프로그램 타이틀 [히미나-MM] 자재관리 생성 및 변경
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OKCODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE clear_okcode OUTPUT.
+  CLEAR ok_code.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_ALV OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& alv grid 그리기</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE  init_alv OUTPUT.
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* 1. 오브젝트 생성</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">**- 1) Container</font>
+  IF go_container IS INITIAL.
+    CREATE OBJECT go_container
+      EXPORTING
+        container_name = 'MY_CONTROL_AREA'   " 화면에 만든 컨트롤 영역 이름
+      EXCEPTIONS
+        OTHERS         = 1.
+
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*      MESSAGE a029.   " Error creating the container object</font>
+<font color ="#0000FF">*      MESSAGE a010(bc405_408).</font>
+    ENDIF.
+
+<font color ="#0000FF">*- 2) Alv grid control</font>
+    CREATE OBJECT go_alv_grid
+      EXPORTING
+        i_parent = go_container
+      EXCEPTIONS
+        OTHERS   = 1.
+
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*      MESSAGE a029.   " Error creating the container object</font>
+    ENDIF.
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* 2. alv grid 그리기 - 메소드 호출</font>
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*- 1) Layout variant</font>
+    PERFORM set_variant.
+
+<font color ="#0000FF">*- 2) Layout design</font>
+    PERFORM set_layout.
+
+    "자재 다중 생성 Layout design
+    PERFORM set_layout2.
+
+<font color ="#0000FF">*- 3) Field catalog</font>
+<font color ="#0000FF">*                            필드명  col_text  no_out</font>
+    PERFORM set_fcat USING :
+<font color ="#0000FF">*                             'DDAT' '유통기한(일)' '',</font>
+<font color ="#0000FF">*                             'DELFG'  ''      'X',</font>
+<font color ="#0000FF">*                             'MATNR'  ''      '',</font>
+                             'MATNM'  ''      '',
+                             'MATTYPE'  ''      '',
+                             'LDTIME'  '리드타임(일)'      '',
+                             'SAFSTO'  '안전재고량'      '',
+                             'UNIT'  ''      '',
+                             'DDAT'  '유통기한(일)'      '',
+                             'AGEDAT'  ''      '',
+                             'BATFG'  ''      '',
+                             'OKTEMP'  ''      '',
+                             'TEMPUNIT'  ''      '',
+                             'DELFG'  ''      'X',
+                             'CHANGED_BY' '' '',
+                             'CHANGED_ON' '' '',
+                             'CHANGED_TIME' '' ''.
+
+
+
+<font color ="#0000FF">*- 4) Sort</font>
+<font color ="#0000FF">*                            필드명  내림차순</font>
+    PERFORM set_sort USING : 'DELFG' '',
+                             'MATNR' ''.
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*- 5) 이벤트 핸들러 연결</font>
+    SET HANDLER : lcl_handler=&gt;on_toolbar FOR go_alv_grid,
+                  lcl_handler=&gt;on_user_command FOR go_alv_grid,
+                  lcl_handler=&gt;handle_data_changed  FOR go_alv_grid.
+
+<font color ="#0000FF">*- 6) 메소드 호출</font>
+    PERFORM display_grid.
+
+
+  ELSE.
+<font color ="#0000FF">*- 이미 alv 만들어져 있을 경우 데이터 refresh</font>
+    go_alv_grid-&gt;refresh_table_display( ).
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module GET_DATA OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE get_data OUTPUT.
+  PERFORM get_data. "리프레쉬 위한 겟 데이터
+
+<font color ="#0000FF">*  PERFORM make_data.</font>
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0300 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0300 OUTPUT.
+  SET PF-STATUS 'STATUS_300'.
+  SET TITLEBAR 'TITLE_300'.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

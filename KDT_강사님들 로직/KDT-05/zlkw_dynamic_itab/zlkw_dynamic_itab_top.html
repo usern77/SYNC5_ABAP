@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_DYNAMIC_ITAB_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_DYNAMIC_ITAB_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_DYNAMIC_ITAB_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZLKW_DYNAMIC_ITAB_TOP                    - Report ZLKW_DYNAMIC_ITAB</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zlkw_dynamic_itab MESSAGE-ID oo.
+
+DATA : BEGIN OF gs_field,
+         field TYPE dd03l-fieldname,
+         leng  TYPE dd03l-leng,
+       END OF gs_field,
+
+       BEGIN OF gs_field_label,
+         fieldname TYPE dd03m-fieldname,
+         reptext   TYPE dd03m-reptext,
+         scrtext_s TYPE dd03m-scrtext_s,
+         scrtext_m TYPE dd03m-scrtext_m,
+         scrtext_l TYPE dd03m-scrtext_l,
+       END OF gs_field_label,
+
+       gt_field       LIKE TABLE OF gs_field,
+       gt_field_label LIKE TABLE OF gs_field_label,
+       go_new_table   TYPE REF TO data,
+       go_new_line    TYPE REF TO data,
+       gs_field_fcat  TYPE lvc_s_fcat,
+       gt_field_fcat  TYPE lvc_t_fcat.
+
+<font color ="#0000FF">* ALV 관련</font>
+DATA : gcl_container TYPE REF TO cl_gui_docking_container,
+       gcl_grid      TYPE REF TO cl_gui_alv_grid,
+       gs_fcat       TYPE lvc_s_fcat,
+       gt_fcat       TYPE lvc_t_fcat.
+
+FIELD-SYMBOLS : &lt;gt_table&gt; TYPE STANDARD TABLE,
+                &lt;gs_line&gt;  TYPE any.
+
+DEFINE _clear.
+  CLEAR   &1.
+  REFRESH &1.
+END-OF-DEFINITION.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZD00_CREATE_CUSTOMO01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZD00_CREATE_CUSTOMO01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">***INCLUDE MZD00_CREATE_CUSTOMO01</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CLEAR_OKCODE  OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE clear_okcode OUTPUT.
+
+  CLEAR ok_code.
+
+ENDMODULE.                 " CLEAR_OKCODE  OUTPUT
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  STATUS_0100  OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0100 OUTPUT.
+
+  SET PF-STATUS 'DYN_0100'.
+  SET TITLEBAR 'DYN_0100'.
+
+ENDMODULE.                 " STATUS_0100  OUTPUT
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

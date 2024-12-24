@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_GOS_FILE_UPLOAD_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_GOS_FILE_UPLOAD_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_GOS_FILE_UPLOAD_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZLKW_GOS_FILE_UPLOAD_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_hotspot</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_ROW_ID</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN_ID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_hotspot  USING ps_row TYPE lvc_s_row
+                           ps_col TYPE lvc_s_col.
+
+  READ TABLE gt_list INTO gs_list INDEX ps_row-index.
+
+  IF sy-subrc NE 0.
+    EXIT.
+  ENDIF.
+
+  PERFORM call_gos USING gs_list-ebeln gs_list-ebelp.
+
+  PERFORM get_data.
+  PERFORM check_attache.
+  PERFORM refresh_grid.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+  CLEAR   : gs_list.
+  REFRESH : gt_list.
+
+  SELECT a~ebeln a~bsart a~bstyp
+         b~ebelp b~bukrs b~werks b~lgort b~matnr b~menge b~meins
+    INTO CORRESPONDING FIELDS OF TABLE gt_list
+    FROM ekko AS a
+   INNER JOIN ekpo AS b
+      ON a~ebeln = b~ebeln
+   WHERE a~ebeln IN so_ebeln.
+
+  IF sy-subrc NE 0.
+    MESSAGE s000 WITH TEXT-m01.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat_layout .
+
+  gs_layout-zebra      = 'X'.
+  gs_layout-cwidth_opt = 'A'.
+  gs_layout-sel_mode   = 'D'.
+
+  gs_stable-row = 'X'.
+  gs_stable-col = 'X'.
+
+  PERFORM make_fcat USING :
+  'X'   'EBELN'     ' '       'EKKO'  ' ',
+  'X'   'EBELP'     ' '       'EKPO'  ' ',
+  ' '   'BSART'     ' '       'EKKO'  ' ',
+  ' '   'BSTYP'     ' '       'EKKO'  ' ',
+  ' '   'BUKRS'     ' '       'EKPO'  ' ',
+  ' '   'WERKS'     ' '       'EKPO'  ' ',
+  ' '   'LGORT'     ' '       'EKPO'  ' ',
+  ' '   'MATNR'     ' '       'EKPO'  ' ',
+  ' '   'MENGE'     ' '       'EKPO'  ' ',
+  ' '   'MEINS'     ' '       'EKPO'  ' ',
+  ' '   'ATTACHE'   TEXT-f01  ' '     ' '.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_fcat  USING pv_key pv_field pv_text pv_ref_table pv_ref_field.
+
+  gs_fcat-key       = pv_key.
+  gs_fcat-fieldname = pv_field.
+  gs_fcat-coltext   = pv_text.
+  gs_fcat-ref_table = pv_ref_table.
+  gs_fcat-ref_field = pv_ref_field.
+
+  CASE pv_field.
+    WHEN 'ATTACHE'.
+      gs_fcat-icon    = 'X'.
+      gs_fcat-hotspot = 'X'.
+
+    WHEN 'MENGE'.
+      gs_fcat-qfieldname = 'MEINS'.
+
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR  gs_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+
+  CREATE OBJECT gcl_container
+    EXPORTING
+      side      = gcl_container-&gt;dock_at_left
+      extension = 5000.
+
+  CREATE OBJECT gcl_grid
+    EXPORTING
+      i_parent = gcl_container.
+
+  SET HANDLER : lcl_event_handler=&gt;handle_hotspot FOR gcl_grid.
+
+  gs_variant-report = sy-repid.
+
+  CALL METHOD gcl_grid-&gt;set_table_for_first_display
+    EXPORTING
+      i_save          = 'A'
+      i_default       = 'X'
+      is_layout       = gs_layout
+      is_variant      = gs_variant
+    CHANGING
+      it_fieldcatalog = gt_fcat
+      it_outtab       = gt_list.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form call_gos</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GS_LIST_EBELN</font>
+<font color ="#0000FF">*&      --&gt; GS_LIST_EBELP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_gos  USING pv_ebeln TYPE ekko-ebeln
+                     pv_ebelp TYPE ekpo-ebelp.
+
+  DATA : ls_object TYPE sibflporb,
+         lv_mode.
+
+  ls_object-typeid = gc_typeid. "모듈별조별 임의로 ID를 정한다
+  ls_object-catid  = gc_catid.
+
+<font color ="#0000FF">* Unique하게 INSTID 부여해야 업로드한 파일을 찾을 수 있음</font>
+  CONCATENATE pv_ebeln pv_ebelp INTO ls_object-instid.
+
+<font color ="#0000FF">* MODE : 'C' Create</font>
+<font color ="#0000FF">* MODE : 'D' Display</font>
+<font color ="#0000FF">* Mode : 'E' Edit</font>
+  lv_mode = 'C'.
+
+  CALL FUNCTION 'GOS_ATTACHMENT_LIST_POPUP'
+    EXPORTING
+      is_object = ls_object
+      ip_mode   = lv_mode.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_attache</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_attache .
+
+  DATA : ls_attach TYPE srgbtbrel,
+         lt_attach LIKE TABLE OF ls_attach,
+         lv_instid TYPE srgbtbrel-instid_a,
+         lv_tabix  TYPE sy-tabix.
+
+  CLEAR   : ls_attach, lv_tabix.
+  REFRESH : lt_attach.
+
+<font color ="#0000FF">* 업로드한 Typid 로 기존에 업로드 되어 있는지 체크</font>
+  SELECT brelguid reltype  instid_a typeid_a catid_a instid_b typeid_b
+         catid_b  logsys_a arch_a   logsys_b arch_b  utctime  homesys
+    INTO CORRESPONDING FIELDS OF TABLE lt_attach
+    FROM srgbtbrel
+   WHERE typeid_a = gc_typeid
+     AND catid_a  = gc_catid.
+
+  IF sy-subrc NE 0.
+    EXIT.
+  ENDIF.
+
+  SORT lt_attach BY instid_a.
+
+  LOOP AT gt_list INTO gs_list.
+
+    lv_tabix = sy-tabix.
+
+    CONCATENATE gs_list-ebeln gs_list-ebelp INTO lv_instid.
+
+<font color ="#0000FF">* 업로드한 instid 로 파일이 존재 하는지 체크</font>
+    READ TABLE lt_attach INTO ls_attach WITH KEY instid_a = lv_instid
+                                        BINARY SEARCH.
+
+    IF sy-subrc EQ 0.
+
+      gs_list-attache = icon_xls.
+
+      MODIFY gt_list FROM gs_list INDEX lv_tabix TRANSPORTING attache.
+
+    ENDIF.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh_grid .
+
+  CALL METHOD gcl_grid-&gt;refresh_table_display
+    EXPORTING
+      i_soft_refresh = space
+      is_stable      = gs_stable.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

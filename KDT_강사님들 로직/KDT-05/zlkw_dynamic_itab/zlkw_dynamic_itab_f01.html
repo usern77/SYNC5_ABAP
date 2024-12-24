@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZLKW_DYNAMIC_ITAB_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZLKW_DYNAMIC_ITAB_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZLKW_DYNAMIC_ITAB_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZLKW_DYNAMIC_ITAB_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_table_info</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_table_info .
+
+  CLEAR  : gs_field, gs_field_label.
+  _clear : gt_field, gt_field_label, gt_field_fcat.
+
+<font color ="#0000FF">* 입력된 테이블의 Field 정보 조회</font>
+  SELECT fieldname AS field leng
+    INTO CORRESPONDING FIELDS OF TABLE gt_field
+    FROM dd03l
+   WHERE tabname = pa_tab.
+
+  IF sy-subrc NE 0.
+    MESSAGE s000 WITH 'Check Table ID' DISPLAY LIKE 'E'.
+    LEAVE LIST-PROCESSING.
+  ENDIF.
+
+<font color ="#0000FF">* 테이블 필드의 텍스트 조회</font>
+  SELECT fieldname reptext scrtext_s scrtext_m scrtext_l
+    INTO CORRESPONDING FIELDS OF TABLE gt_field_label
+    FROM dd03m
+   WHERE tabname    = pa_tab
+     AND ddlanguage = sy-langu.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_dynamic_itab</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_dynamic_itab .
+
+  SORT gt_field_label BY fieldname.
+
+  LOOP AT gt_field INTO gs_field.
+
+    READ TABLE gt_field_label INTO gs_field_label
+    WITH KEY fieldname = gs_field-field
+    BINARY SEARCH.
+
+    IF sy-subrc NE 0.
+      CONTINUE.
+    ENDIF.
+
+    PERFORM set_fcat USING :
+    gs_field-field
+    gs_field_label-reptext
+    gs_field_label-scrtext_s
+    gs_field_label-scrtext_m
+    gs_field_label-scrtext_l
+    gs_field-leng.
+
+  ENDLOOP.
+
+<font color ="#0000FF">* Dynamic Itab 생성</font>
+  CALL METHOD cl_alv_table_create=&gt;create_dynamic_table
+    EXPORTING
+      it_fieldcatalog = gt_fcat
+    IMPORTING
+      ep_table        = go_new_table.
+
+<font color ="#0000FF">* Create a new Line with the same structure of the table.</font>
+  ASSIGN go_new_table-&gt;* TO &lt;gt_table&gt;.
+  CREATE DATA go_new_line  LIKE LINE OF &lt;gt_table&gt;.
+  ASSIGN go_new_line-&gt;* TO &lt;gs_line&gt;.
+
+  _clear &lt;gt_table&gt;.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GS_FIELD_FIELD</font>
+<font color ="#0000FF">*&      --&gt; GS_FIELD_LABEL_REPTEXT</font>
+<font color ="#0000FF">*&      --&gt; GS_FIELD_LABEL_SCRTEXT_S</font>
+<font color ="#0000FF">*&      --&gt; GS_FIELD_LABEL_SCRTEXT_M</font>
+<font color ="#0000FF">*&      --&gt; GS_FIELD_LABEL_SCRTEXT_L</font>
+<font color ="#0000FF">*&      --&gt; GS_FIELD_LENG</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat  USING pv_field pv_text pv_text_s pv_text_m pv_text_l pv_leng.
+
+  gs_fcat-fieldname = pv_field.
+  gs_fcat-coltext   = pv_text.
+  gs_fcat-scrtext_s = pv_text_s.
+  gs_fcat-scrtext_m = pv_text_m.
+  gs_fcat-scrtext_l = pv_text_l.
+  gs_fcat-outputlen = pv_leng.
+  gs_fcat-ref_table = pa_tab.
+  gs_fcat-ref_field = pv_field.
+
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR  gs_fcat.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

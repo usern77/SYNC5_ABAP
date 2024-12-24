@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_F4_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_F4_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_F4_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_F4_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_f4_bukrs</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_f4_bukrs USING pv_dynprofield TYPE help_info-dynprofld.
+
+  DATA : lt_return_tab  TYPE TABLE OF ddshretval.
+
+  SELECT bukrs, butxt
+    FROM t001
+    INTO TABLE @DATA(lt_bukrs)
+    WHERE land1 = 'KR'.              " 이렇게 원하는 데이터만 구성할 수도 있다.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'  "추가적인 파라미터도 확인해볼 것!!
+    EXPORTING
+      retfield    = 'BUKRS'        " ** 구성한 데이터에서 return 받아올 필드
+      dynpprog    = sy-repid
+      dynpnr      = sy-dynnr
+      dynprofield = pv_dynprofield "리턴받을 필드  'P_BUKRS' 요래요래 직접 하드코딩도 가능
+      value_org   = 'S'            "Value return: C: cell by cell, S: structured 주로 S!!
+    TABLES
+      value_tab   = lt_bukrs       " ** 서치헬프 값 가지고 있는 테이블
+      return_tab  = lt_return_tab. " 선택한 값
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE gt_stravelag
+           FROM stravelag
+         WHERE agencynum IN so_ag.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_f4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_FIELDNAME</font>
+<font color ="#0000FF">*&      --&gt; E_FIELDVALUE</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&      --&gt; ER_EVENT_DATA</font>
+<font color ="#0000FF">*&      --&gt; ET_BAD_CELLS</font>
+<font color ="#0000FF">*&      --&gt; E_DISPLAY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_f4 USING pc_sender      TYPE REF TO cl_gui_alv_grid
+                     pv_fieldname   TYPE        lvc_fname
+                     pv_fieldvalue  TYPE        lvc_value
+                     ps_row_no      TYPE        lvc_s_roid
+                     po_event_data  TYPE REF TO cl_alv_event_data
+                     pt_bad_cells   TYPE        lvc_t_modi
+                     pv_display.
+
+  DATA : ls_modified TYPE lvc_s_modi.
+
+  DATA : lt_f4 TYPE TABLE OF ddshretval,
+         ls_f4 TYPE ddshretval.
+
+  FIELD-SYMBOLS : &lt;ft_f4&gt;  TYPE lvc_t_modi. "ALV Control: Table of Modified Cells for the Application
+
+  CASE pv_fieldname.
+    WHEN 'COUNTRY'.
+<font color ="#0000FF">*      PERFORM f4_....   "이 곳에 로직을 채워준다.</font>
+<font color ="#0000FF">*  	WHEN .</font>
+    WHEN OTHERS.
+  ENDCASE.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_catalog</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_catalog .
+
+  DATA : ls_fcat TYPE lvc_s_fcat.
+
+  CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
+    EXPORTING
+      i_structure_name = 'STRAVELAG'
+    CHANGING
+      ct_fieldcat      = gt_fcat.
+
+  LOOP AT gt_fcat INTO ls_fcat.
+
+    IF    ls_fcat-fieldname EQ 'COUNTRY'.
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+      ls_fcat-f4availabl      = 'X'.
+      ls_fcat-outputlen       = 5.
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+      MODIFY gt_fcat FROM ls_fcat.
+    ENDIF.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_f4_cnum</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_f4_cnum .
+
+  DATA : lt_dynpfields TYPE TABLE OF  dynpread WITH HEADER LINE.
+
+  DATA : lv_val    LIKE lt_dynpfields-fieldvalue,
+         lv_carrid TYPE s_carrid.
+  DATA : ls_scounter TYPE scounter,
+         lt_scounter TYPE TABLE OF scounter.
+
+  DATA : lt_return_tab  TYPE TABLE OF ddshretval.
+
+<font color ="#0000FF">*- 조건으로 활용될 화면 요소의 값을 읽는다.</font>
+
+  CALL FUNCTION 'DYNP_VALUES_READ'
+    EXPORTING
+      dyname             = sy-cprog
+      dynumb             = sy-dynnr
+      request            = 'A'
+      translate_to_upper = 'X'
+    TABLES
+      dynpfields         = lt_dynpfields.   " 이 곳에 내용물 확인해보기.
+
+  CLEAR lt_dynpfields. " 헤더라인을 가지고 있는 형태이므로 WA 초기화 (정확한 값 리턴 위함)
+
+  READ TABLE lt_dynpfields WITH KEY fieldname = 'P_CARRID'.  " 그 중에 내가 읽고자 하는 필드 이름 넣기
+  IF sy-subrc EQ 0 AND lt_dynpfields-fieldvalue IS NOT INITIAL.
+    lv_val    = lt_dynpfields-fieldvalue.
+    lv_carrid = lv_val.
+  ENDIF.
+
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE lt_scounter "보여주고자 하는 내용들 담은 인터널 테이블
+           FROM scounter
+          WHERE carrid = lv_val.
+
+<font color ="#0000FF">*    sort..</font>
+<font color ="#0000FF">*    delete ADJACENT DUPLICATES FROM itab.</font>
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'  " possible entry 생성해주는 FM (각 요소는 여러분들이 알기!)
+    EXPORTING
+      retfield    = 'COUNTNUM'
+      dynpprog    = sy-repid
+      dynpnr      = sy-dynnr
+      dynprofield = 'P_CNUM'
+      value_org   = 'S'
+    TABLES
+      value_tab   = lt_scounter    " 서치헬프 값 가지고 있는 테이블
+      return_tab  = lt_return_tab. " 선택한 값
+
+  IF lt_return_tab IS INITIAL.
+    MESSAGE s006(bc405) WITH TEXT-s04.
+  ENDIF.
+
+
+
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

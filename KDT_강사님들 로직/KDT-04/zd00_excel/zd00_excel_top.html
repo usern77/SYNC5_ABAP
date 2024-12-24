@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZD00_EXCEL_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZD00_EXCEL_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZD00_EXCEL_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZD00_EXCEL_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+TABLES: sscrfields.
+
+DATA: g_function_key TYPE smp_dyntxt.
+
+<font color ="#0000FF">* EXCEL DOWN: DIRECTORY, SMW0</font>
+DATA: gv_directory   TYPE string,
+      gv_initial_dir TYPE string,
+      gv_file        LIKE rlgrap-filename,
+      objfile        TYPE REF TO cl_gui_frontend_services.
+
+<font color ="#0000FF">* 엑셀 업로드</font>
+DATA: lt_intern TYPE TABLE OF alsmex_tabline,
+      ls_intern TYPE          alsmex_tabline,
+      lv_type,
+      lv_nrow   TYPE          i.
+
+<font color ="#0000FF">* OLE object</font>
+DATA: go_excel  TYPE ole2_object,
+      go_books  TYPE ole2_object,
+      go_wbook  TYPE ole2_object,
+      go_book   TYPE ole2_object,
+      go_sheets TYPE ole2_object,
+      go_sheet  TYPE ole2_object,
+      go_cells  TYPE ole2_object,
+      go_cell   TYPE ole2_object,
+      go_range  TYPE ole2_object,
+      go_font   TYPE ole2_object,
+      go_row    TYPE ole2_object,
+      gv_path   TYPE string,
+      gv_num    TYPE i.
+
+DATA: gt_upload LIKE alsmex_tabline OCCURS 0 WITH HEADER LINE.
+
+DATA: gt_data TYPE TABLE OF ztbook_d00.
+DATA: gs_data TYPE ztbook_d00.
+
+DATA: BEGIN OF gs_tmp,
+        book_id   TYPE ztbook_d00-book_id,
+        book_nm   TYPE ztbook_d00-book_nm,
+        author    TYPE ztbook_d00-author,
+        publisher TYPE ztbook_d00-publisher,
+      END OF gs_tmp.
+
+DATA: go_dock TYPE REF TO cl_gui_docking_container,
+      go_alv  TYPE REF TO cl_gui_alv_grid.
+
+DATA: ok_code TYPE sy-ucomm.
+
+DATA: gs_layout TYPE lvc_s_layo.
+DATA : gt_fcat TYPE lvc_t_fcat.
+
+FIELD-SYMBOLS : &lt;fs&gt; TYPE any.
+
+<font color ="#0000FF">* define macro</font>
+DEFINE m_message.
+  CASE sy-subrc.
+    WHEN 0.
+    WHEN 1.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+              WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    WHEN OTHERS. RAISE upload_ole.
+  ENDCASE.
+END-OF-DEFINITION.
+
+<font color ="#0000FF">*      value of excel-cell</font>
+TYPES: ty_d_itabvalue TYPE alsmex_tabline-value,
+<font color ="#0000FF">*      internal table containing the excel data</font>
+       ty_t_itab      TYPE alsmex_tabline   OCCURS 0,
+
+<font color ="#0000FF">*      line type of sender table</font>
+       BEGIN OF ty_s_senderline,
+         line(4096) TYPE c,
+       END OF ty_s_senderline,
+<font color ="#0000FF">*      sender table</font>
+       ty_t_sender TYPE ty_s_senderline  OCCURS 0.
+
+CONSTANTS:  gc_esc              VALUE '"'.
+
+  DATA : excel_tab     TYPE  ty_t_sender.
+  DATA : ld_separator  TYPE  c.
+  DATA : application TYPE  ole2_object,
+         workbook    TYPE  ole2_object,
+         range       TYPE  ole2_object,
+         worksheets  TYPE  ole2_object,
+         worksheet   TYPE  ole2_object.
+  DATA : h_cell  TYPE  ole2_object,
+         h_cell1 TYPE  ole2_object.
+  DATA : ld_rc             TYPE i.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

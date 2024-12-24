@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>YTEST_OBJECT</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: YTEST_OBJECT</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Program YTEST_OBJECT</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report YTEST_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT YTEST_OBJECT.
+
+DATA: GO_CONT     TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_TEXTEDIT TYPE REF TO CL_GUI_TEXTEDIT.
+
+PERFORM CREATE_OBJECT USING 'AREA'
+                      CHANGING GO_CONT
+                               GO_TEXTEDIT.
+
+IF SY-SUBRC = 0.
+
+ENDIF.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GO_CONT</font>
+<font color ="#0000FF">*&      &lt;-- GO_TEXTEDIT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_OBJECT  USING PV_AREA TYPE CHAR20
+                    CHANGING PO_CONT TYPE REF TO CL_GUI_CUSTOM_CONTAINER
+                             PO_TEXTEDIT TYPE REF TO CL_GUI_TEXTEDIT.
+
+  CREATE OBJECT PO_CONT
+    EXPORTING
+      CONTAINER_NAME              = PV_AREA
+    EXCEPTIONS
+      CNTL_ERROR                  = 1
+      CNTL_SYSTEM_ERROR           = 2
+      CREATE_ERROR                = 3
+      LIFETIME_ERROR              = 4
+      LIFETIME_DYNPRO_DYNPRO_LINK = 5
+      OTHERS                      = 6.
+  IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+  CREATE OBJECT PO_TEXTEDIT
+    EXPORTING
+      PARENT                 = PO_CONT
+    EXCEPTIONS
+      ERROR_CNTL_CREATE      = 1
+      ERROR_CNTL_INIT        = 2
+      ERROR_CNTL_LINK        = 3
+      ERROR_DP_CREATE        = 4
+      GUI_TYPE_NOT_SUPPORTED = 5
+      OTHERS                 = 6.
+  IF SY-SUBRC &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+
+
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

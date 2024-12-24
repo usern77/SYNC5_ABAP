@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZEXCEL_UPLOAD</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZEXCEL_UPLOAD</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 회계전표 엑셀 업로드</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZEXCEL_UPLOAD</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zexcel_uploadtop.html">zexcel_uploadtop</a>.    " Global Data
+
+include <a href ="zexcel_uploads01.html">zexcel_uploads01</a>.  " Selection screen
+include <a href ="zexcel_uploadc01.html">zexcel_uploadc01</a>.  " ALV Events
+include <a href ="zexcel_uploado01.html">zexcel_uploado01</a>.  " PBO-Modules
+include <a href ="zexcel_uploadi01.html">zexcel_uploadi01</a>.  " PAI-Modules
+include <a href ="zexcel_uploadf01.html">zexcel_uploadf01</a>.  " FORM-Routines
+
+SELECTION-SCREEN FUNCTION KEY 1.                   " Selection screen button
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* INITIALIZATION</font>
+<font color ="#0000FF">**********************************************************************</font>
+INITIALIZATION.
+  PERFORM set_init_value.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* AT SELECTION-SCREEN</font>
+<font color ="#0000FF">**********************************************************************</font>
+AT SELECTION-SCREEN.
+  PERFORM button_control.
+
+AT SELECTION-SCREEN OUTPUT.
+  PERFORM modify_screen.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_path.
+  PERFORM f4_filename.
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">* START-OF-SELECTION</font>
+<font color ="#0000FF">**********************************************************************</font>
+START-OF-SELECTION.
+
+  CASE p_gbn.
+    WHEN 'E'.
+      PERFORM excel_upload.
+      PERFORM make_body.
+    WHEN 'R'.
+      PERFORM get_base_data.
+  ENDCASE.
+
+  IF gt_body IS NOT INITIAL.
+    CALL SCREEN 100.
+  ELSE.
+    MESSAGE s037 DISPLAY LIKE 'E'.
+  ENDIF.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE100 --&gt; [FI] Excel upload sample</font>
+<font color ="#0000FF">* TITLE100 --&gt; [FI] Excel upload sample</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* E01 File conversion failed</font>
+<font color ="#0000FF">* E02 File open error</font>
+<font color ="#0000FF">* E03 Top of page event error</font>
+<font color ="#0000FF">* E04 역분개 할 행을 선택하세요.</font>
+<font color ="#0000FF">* E05 An error has occured picking a folder</font>
+<font color ="#0000FF">* L01 실전표</font>
+<font color ="#0000FF">* L02 임시전표</font>
+<font color ="#0000FF">* L03 Excel upload</font>
+<font color ="#0000FF">* L04 전표생성</font>
+<font color ="#0000FF">* L05 Display data</font>
+<font color ="#0000FF">* L06 전체</font>
+<font color ="#0000FF">* L07 생성완료</font>
+<font color ="#0000FF">* L08 미완료</font>
+<font color ="#0000FF">* Q01 저장 하시겠습니까?</font>
+<font color ="#0000FF">* T01 Condition</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* P_BUKRS D       .</font>
+<font color ="#0000FF">* P_GBN         Job</font>
+<font color ="#0000FF">* P_GJAHR D       .</font>
+<font color ="#0000FF">* P_PATH D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: K5</font>
+<font color ="#0000FF">*001   & & & &</font>
+<font color ="#0000FF">*037   No data found</font>
+<font color ="#0000FF">*102   Data has been saved</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

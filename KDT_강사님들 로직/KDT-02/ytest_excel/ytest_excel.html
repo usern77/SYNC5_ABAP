@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>YTEST_EXCEL</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: YTEST_EXCEL</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Program ZTEST14</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZTEST14</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT YTEST_EXCEL.
+
+include <a href ="ytest_excel_top.html">YTEST_EXCEL_TOP</a>.
+include <a href ="ytest_excel_sel.html">YTEST_EXCEL_SEL</a>.
+include <a href ="ytest_excel_c01.html">YTEST_EXCEL_C01</a>.
+include <a href ="ytest_excel_f01.html">YTEST_EXCEL_F01</a>.
+include <a href ="ytest_excel_i01.html">YTEST_EXCEL_I01</a>.
+include <a href ="ytest_excel_o01.html">YTEST_EXCEL_O01</a>.
+
+
+<font color ="#0000FF">*&=====================================================================*</font>
+<font color ="#0000FF">*& INITIALIZATION</font>
+<font color ="#0000FF">*&=====================================================================*</font>
+INITIALIZATION.
+  PERFORM SET_FUNCTION_KEY.
+
+
+<font color ="#0000FF">*&=====================================================================*</font>
+<font color ="#0000FF">*& AT SELECTION-SCREEN</font>
+<font color ="#0000FF">*&=====================================================================*</font>
+AT SELECTION-SCREEN.
+  PERFORM ACT_FUNCTION_KEY.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR P_FILE.
+  PERFORM GET_FILE_PATH.
+
+<font color ="#0000FF">*&=====================================================================*</font>
+<font color ="#0000FF">*& START-OF-SELECTION</font>
+<font color ="#0000FF">*&=====================================================================*</font>
+START-OF-SELECTION.
+
+<font color ="#0000FF">*IF r1 = 'X'.</font>
+<font color ="#0000FF">*    PERFORM CHECK_BEFORE_PROCESS.</font>
+<font color ="#0000FF">** 파일 업로드 진행</font>
+<font color ="#0000FF">*    PERFORM UPLOAD_FROM_EXCEL.</font>
+<font color ="#0000FF">*    PERFORM GET_DATA.</font>
+<font color ="#0000FF">*ELSEIF r2 = 'X'.</font>
+<font color ="#0000FF">*    PERFORM GET_NEEDED_DATA.</font>
+<font color ="#0000FF">*ELSEIF r3 = 'X'.</font>
+<font color ="#0000FF">*    PERFORM DEL_DATA.</font>
+<font color ="#0000FF">*ENDIF.</font>
+  CASE 'X'.
+    WHEN R1.
+      PERFORM UPLOAD_FROM_EXCEL.
+      CALL SCREEN 100.
+    WHEN R2.
+      PERFORM GET_NEEDED_DATA.
+      IF GT_ZSCARR IS NOT INITIAL.
+        CALL SCREEN 100.
+      ELSE.
+        MESSAGE '조회할 데이터가 없습니다.' TYPE 'I'.
+      ENDIF.
+    WHEN R3.
+      PERFORM DEL_DATA.
+  ENDCASE.
+
+<font color ="#0000FF">*&=====================================================================*</font>
+<font color ="#0000FF">*& END-OF-SELECTION</font>
+<font color ="#0000FF">*&=====================================================================*</font>
+END-OF-SELECTION.
+<font color ="#0000FF">*  IF R1 ='X'.</font>
+<font color ="#0000FF">*    CALL SCREEN 100.</font>
+<font color ="#0000FF">*  ELSEIF R2 = 'X'.</font>
+<font color ="#0000FF">*    IF GT_ZSCARR IS NOT INITIAL.</font>
+<font color ="#0000FF">*      CALL SCREEN 100.</font>
+<font color ="#0000FF">*    ELSE.</font>
+<font color ="#0000FF">*      MESSAGE '조회할 데이터가 없습니다.' TYPE 'I'.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDIF.</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* P_FILE         파일경로선택</font>
+<font color ="#0000FF">* R1         업로드</font>
+<font color ="#0000FF">* R2         전체조회</font>
+<font color ="#0000FF">* R3         전체삭제</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   경로를 입력하세요</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

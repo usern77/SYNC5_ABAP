@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZEXCEL_PRINTI01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZEXCEL_PRINTI01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZEXCEL_PRINTI01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZEXCEL_PRINTI01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+
+  CALL METHOD : go_alv_grid-&gt;free,
+                go_html_cntrl-&gt;free,
+                go_container-&gt;free,
+                go_top_container-&gt;free.
+
+  FREE : go_alv_grid, go_html_cntrl,
+         go_container, go_top_container.
+
+<font color ="#0000FF">*-- 엑셀관련 오브젝트를 해제한다.</font>
+  FREE OBJECT : sheets,
+                books,
+                excel,
+                sheet,
+                book,
+                workbook,
+                cells,
+                cell,
+                row,
+                buffer,
+                activesheet.
+
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+
+  CASE gv_okcode.
+    WHEN 'EXCL'.
+      PERFORM excel_job.
+  ENDCASE.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
